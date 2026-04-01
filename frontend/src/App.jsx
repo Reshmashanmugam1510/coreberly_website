@@ -23,8 +23,7 @@ const galleryIcons = ["🧑‍💻", "🎨", "🚀", "💡", "🤝", "📸"];
 const SERVICE_CARDS = [
   {
     num: "01",
-    cls: "bento-card wide tall",
-    tag: "Most Requested",
+    cls: "bento-card accent",
     icon: "🖥️",
     title: "Web Development",
     body:
@@ -32,36 +31,36 @@ const SERVICE_CARDS = [
   },
   {
     num: "02",
-    cls: "bento-card wide",
+    cls: "bento-card accent",
     icon: "📱",
     title: "Mobile App Development",
     body: "Cross-platform and native iOS/Android apps delivering seamless user experiences."
   },
   {
+    num: "03",
+    cls: "bento-card accent",
+    icon: "☁️",
+    title: "Cloud & DevOps",
+    body: "AWS, Azure & GCP infrastructure, CI/CD pipelines, and cost-optimised cloud migrations."
+  },
+  {
     num: "04",
-    cls: "bento-card accent wide",
+    cls: "bento-card accent",
     icon: "🤖",
     title: "AI & Machine Learning",
     body:
       "LLM integrations, computer vision, and intelligent automation that transforms raw data into real business value."
   },
   {
-    num: "03",
-    cls: "bento-card wide",
-    icon: "☁️",
-    title: "Cloud & DevOps",
-    body: "AWS, Azure & GCP infrastructure, CI/CD pipelines, and cost-optimised cloud migrations."
-  },
-  {
     num: "05",
-    cls: "bento-card span2",
+    cls: "bento-card accent",
     icon: "🎨",
     title: "UI/UX Design",
     body: "Pixel-perfect design systems that make products effortless."
   },
   {
     num: "06",
-    cls: "bento-card span1",
+    cls: "bento-card accent",
     icon: "🔒",
     title: "Security & QA",
     body: "Audits, pen-testing, compliance."
@@ -235,9 +234,12 @@ export default function App() {
       localStorage.setItem("token", adminToken);
       await api.saveSiteData(next);
       setData(next);
-      showToast("Saved");
+       // Refetch to confirm persistence
+       const confirmation = await api.getSiteData();
+       setData({ ...defaultData, ...confirmation });
+       showToast("Saved successfully");
     } catch (e) {
-      showToast(e.message);
+       showToast("Error: " + e.message);
     }
   };
 
@@ -457,7 +459,7 @@ export default function App() {
           <p className="sec-sub light">Strategic alliances that amplify what we can build and deliver for you.</p>
         </div>
         <div className="partners-grid">
-          {data.partners.map((p, i) => (
+           {(data.partners || []).map((p, i) => (
             <div className="partner-card fade-up" key={`${p.name}-${i}`}>
               <div className="partner-logo">{p.icon || "🏢"}</div>
               <div className="partner-info">
@@ -477,7 +479,7 @@ export default function App() {
           Passionate engineers, designers, and strategists united by a single mission: building products that matter.
         </p>
         <div className="team-grid">
-          {data.team.map((m, i) => (
+           {(data.team || []).map((m, i) => (
             <div className="team-card fade-up" key={`${m.name}-${i}`}>
               <div className="team-photo">
                 {m.photo ? (
@@ -511,7 +513,7 @@ export default function App() {
         <h2 className="sec-title">Inside Our World</h2>
         <p className="sec-sub">A glimpse into the culture, energy, and space where great products are born.</p>
         <div className="gallery-grid">
-          {data.gallery.slice(0, 6).map((g, i) => (
+           {(data.gallery || []).slice(0, 6).map((g, i) => (
             <div className={`g-item g-item-${i + 1}`} key={`${g.caption}-${i}`}>
               {g.url ? (
                 <img src={g.url} alt={g.caption} />
@@ -826,7 +828,7 @@ export default function App() {
           </div>
         </div>
       )}
-
+// Admin Panel JSX
       {adminOpen && (
         <div id="admin-panel" className="open">
           <div className="ap-header">
@@ -846,13 +848,13 @@ export default function App() {
 
             {tab === "team" && (
               <div className="ap-section active">
-                {data.team.map((m, i) => (
+                 {(data.team || []).map((m, i) => (
                   <div className="ap-member-item" key={`${m.name}-${i}`}>
                     <span>{m.name}</span>
                     <button
                       type="button"
                       className="ap-del-btn"
-                      onClick={() => saveData({ ...data, team: data.team.filter((_, idx) => idx !== i) })}
+                       onClick={() => saveData({ ...data, team: (data.team || []).filter((_, idx) => idx !== i) })}
                     >
                       ✕
                     </button>
@@ -890,7 +892,7 @@ export default function App() {
                   className="ap-btn"
                   onClick={() => {
                     if (!newMember.name || !newMember.badge) return showToast("Name and badge required");
-                    saveData({ ...data, team: [...data.team, { ...newMember }] });
+                     saveData({ ...data, team: [...(data.team || []), { ...newMember }] });
                     setNewMember({ name: "", badge: "", title: "", bio: "", photo: "", linkedin: "" });
                   }}
                 >
@@ -901,13 +903,13 @@ export default function App() {
 
             {tab === "partners" && (
               <div className="ap-section active">
-                {data.partners.map((p, i) => (
+                 {(data.partners || []).map((p, i) => (
                   <div className="ap-member-item" key={`${p.name}-${i}`}>
                     <span>{p.name}</span>
                     <button
                       type="button"
                       className="ap-del-btn"
-                      onClick={() => saveData({ ...data, partners: data.partners.filter((_, idx) => idx !== i) })}
+                       onClick={() => saveData({ ...data, partners: (data.partners || []).filter((_, idx) => idx !== i) })}
                     >
                       ✕
                     </button>
@@ -922,7 +924,7 @@ export default function App() {
                   className="ap-btn"
                   onClick={() => {
                     if (!newPartner.name) return showToast("Company name required");
-                    saveData({ ...data, partners: [...data.partners, { ...newPartner, icon: newPartner.icon || "🏢" }] });
+                     saveData({ ...data, partners: [...(data.partners || []), { ...newPartner, icon: newPartner.icon || "🏢" }] });
                     setNewPartner({ name: "", type: "", icon: "", badge: "" });
                   }}
                 >
@@ -933,13 +935,13 @@ export default function App() {
 
             {tab === "gallery" && (
               <div className="ap-section active">
-                {data.gallery.map((g, i) => (
+                 {(data.gallery || []).map((g, i) => (
                   <div className="ap-member-item" key={`${g.caption}-${i}`}>
                     <span>{g.caption}</span>
                     <button
                       type="button"
                       className="ap-del-btn"
-                      onClick={() => saveData({ ...data, gallery: data.gallery.filter((_, idx) => idx !== i) })}
+                       onClick={() => saveData({ ...data, gallery: (data.gallery || []).filter((_, idx) => idx !== i) })}
                     >
                       ✕
                     </button>
@@ -970,7 +972,7 @@ export default function App() {
                   onClick={() => {
                     if (!newGallery.caption) return showToast("Caption required");
                     if (!newGallery.url) return showToast("Image required");
-                    saveData({ ...data, gallery: [...data.gallery, { ...newGallery }] });
+                     saveData({ ...data, gallery: [...(data.gallery || []), { ...newGallery }] });
                     setNewGallery({ url: "", caption: "" });
                     setGalleryPhotoPreview("");
                   }}
