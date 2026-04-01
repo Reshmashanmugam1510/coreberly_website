@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manufacturer Marketplace</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Manufacturer Marketplace</h1>
+    <p>Shop owners buy inventory directly from manufacturers</p>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="marketplace">Marketplace</button>
+        <button class="tab-btn" data-tab="cart">Cart</button>
+        <button class="tab-btn" data-tab="shop-orders">Shop Orders</button>
+        <button class="tab-btn" data-tab="manufacturer">Manufacturer Dashboard</button>
+      </div>
+
+      <div id="marketplace" class="tab active">
+        <div class="toolbar">
+          <input id="searchInput" type="text" placeholder="Search products or manufacturers..." />
+          <select id="categoryFilter">
+            <option value="all">All categories</option>
+          </select>
+        </div>
+        <div id="productGrid" class="grid"></div>
+      </div>
+
+      <div id="cart" class="tab">
+        <h2>Cart</h2>
+        <div id="cartItems"></div>
+        <div class="checkout-box">
+          <h3>Checkout</h3>
+          <label>Shop Name <input id="shopName" type="text" placeholder="Your shop name" /></label>
+          <label>Delivery Address <input id="deliveryAddress" type="text" placeholder="Delivery address" /></label>
+          <label>Payment Method
+            <select id="paymentMethod">
+              <option>Bank Transfer</option>
+              <option>UPI</option>
+              <option>Cash on Delivery</option>
+            </select>
+          </label>
+          <button id="placeOrderBtn" class="primary">Place Order</button>
+          <p id="cartTotal"></p>
+        </div>
+      </div>
+
+      <div id="shop-orders" class="tab">
+        <h2>Shop Orders</h2>
+        <div id="shopOrdersList"></div>
+      </div>
+
+      <div id="manufacturer" class="tab">
+        <h2>Manufacturer Dashboard</h2>
+        <label>Select Manufacturer
+          <select id="manufacturerSelect"></select>
+        </label>
+        <div id="manufacturerOrders"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="productCardTemplate">
+    <article class="card">
+      <h3 class="product-name"></h3>
+      <p class="muted manufacturer-name"></p>
+      <p class="category-tag"></p>
+      <p class="price"></p>
+      <p class="moq"></p>
+      <div class="qty-row">
+        <input class="qty-input" type="number" min="1" value="1" />
+        <button class="add-cart-btn">Add to Cart</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="seed-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
