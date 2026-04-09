@@ -1620,21 +1620,48 @@ section {
 }
 
 .social-btn {
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff;
-  padding: 0.75rem 1.4rem;
-  border-radius: 8px;
+  border-radius: 14px;
   text-decoration: none;
-  font-weight: 600;
   font-size: 0.85rem;
   transition: all 0.2s;
+  flex: 0 0 auto;
+}
+
+.social-btn svg {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
 .social-btn:hover {
   background: var(--brand-lt);
   border-color: var(--brand-lt);
   transform: translateY(-2px);
+}
+
+.social-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes slideUp {
@@ -1706,6 +1733,21 @@ section {
   .contact-item {
     gap: 0.8rem;
     padding: 1rem;
+  }
+
+  .social-links {
+    gap: 0.6rem;
+  }
+
+  .social-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .social-btn svg {
+    width: 20px;
+    height: 20px;
   }
 
   .contact-icon {

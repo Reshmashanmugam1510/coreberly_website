@@ -15,7 +15,7 @@ const defaultData = {
     tname: "",
     trole: ""
   },
-  contact: { email: "", linkedin: "#", twitter: "#" }
+  contact: { email: "", linkedin: "#", instagram: "#", twitter: "#" }
 };
 
 const galleryIcons = ["🧑‍💻", "🎨", "🚀", "💡", "🤝", "📸"];
@@ -141,6 +141,66 @@ function teamBadge(m) {
 
 function teamTitle(m) {
   return m.title || "";
+}
+
+function SocialIcon({ type }) {
+  if (type === "email") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M5 8l7 5 7-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (type === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (type === "linkedin") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6.5 9.5V18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M6.5 6.8v.2" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+        <path d="M10 18v-4.8c0-1.8 1-3.1 2.7-3.1 1.7 0 2.6 1.2 2.6 3.1V18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 18V9.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 6.5h16L12 13l-8-6.5Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M4 6.5V17h16V6.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SocialLink({ href, label, type }) {
+  const safeHref = href && href !== "#" ? href : undefined;
+
+  return (
+    <a
+      href={safeHref}
+      target={safeHref && type !== "email" ? "_blank" : undefined}
+      rel={safeHref && type !== "email" ? "noreferrer" : undefined}
+      className="social-btn"
+      aria-label={label}
+      title={label}
+      onClick={(e) => {
+        if (!safeHref) e.preventDefault();
+      }}
+    >
+      <SocialIcon type={type} />
+      <span className="sr-only">{label}</span>
+    </a>
+  );
 }
 
 export default function App() {
@@ -773,16 +833,10 @@ export default function App() {
                 <div className="contact-socials">
                   <h3>Connect With Us</h3>
                   <div className="social-links">
-                    {contact.linkedin && (
-                      <a href={contact.linkedin} target="_blank" rel="noreferrer" className="social-btn" title="LinkedIn">
-                        LinkedIn
-                      </a>
-                    )}
-                    {contact.twitter && (
-                      <a href={contact.twitter} target="_blank" rel="noreferrer" className="social-btn" title="Twitter">
-                        Twitter
-                      </a>
-                    )}
+                    <SocialLink href={`mailto:${contact.email}`} label="Email" type="email" />
+                    <SocialLink href={contact.linkedin} label="LinkedIn" type="linkedin" />
+                    <SocialLink href={contact.instagram} label="Instagram" type="instagram" />
+                    <SocialLink href={contact.twitter} label="Twitter / X" type="twitter" />
                   </div>
                 </div>
               </div>
@@ -1024,6 +1078,7 @@ export default function App() {
               <div className="ap-section active">
                 <input value={contact.email} onChange={(e) => setData({ ...data, contact: { ...contact, email: e.target.value } })} />
                 <input value={contact.linkedin} onChange={(e) => setData({ ...data, contact: { ...contact, linkedin: e.target.value } })} />
+                <input value={contact.instagram} onChange={(e) => setData({ ...data, contact: { ...contact, instagram: e.target.value } })} />
                 <input value={contact.twitter} onChange={(e) => setData({ ...data, contact: { ...contact, twitter: e.target.value } })} />
                 <button type="button" className="ap-btn" onClick={() => saveData(data)}>
                   Save Contact
