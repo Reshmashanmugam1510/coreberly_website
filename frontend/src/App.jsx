@@ -230,6 +230,15 @@ export default function App() {
     photo: "",
     linkedin: ""
   });
+  const [editingMember, setEditingMember] = useState(null);
+  const [editedMember, setEditedMember] = useState({
+    name: "",
+    badge: "",
+    title: "",
+    bio: "",
+    photo: "",
+    linkedin: ""
+  });
   const [newPartner, setNewPartner] = useState({ name: "", type: "", icon: "", badge: "" });
   const [newGallery, setNewGallery] = useState({ url: "", caption: "" });
   const [newPassword, setNewPassword] = useState("");
@@ -911,15 +920,100 @@ export default function App() {
             {tab === "team" && (
               <div className="ap-section active">
                  {(data.team || []).map((m, i) => (
-                  <div className="ap-member-item" key={`${m.name}-${i}`}>
-                    <span>{m.name}</span>
-                    <button
-                      type="button"
-                      className="ap-del-btn"
-                       onClick={() => saveData({ ...data, team: (data.team || []).filter((_, idx) => idx !== i) })}
-                    >
-                      ✕
-                    </button>
+                  <div key={`${m.name}-${i}`}>
+                    {editingMember === i ? (
+                      <div className="ap-edit-form">
+                        <input
+                          placeholder="Full name"
+                          value={editedMember.name}
+                          onChange={(e) => setEditedMember({ ...editedMember, name: e.target.value })}
+                        />
+                        <input
+                          placeholder="Badge on photo (e.g. FOUNDER & CEO)"
+                          value={editedMember.badge}
+                          onChange={(e) => setEditedMember({ ...editedMember, badge: e.target.value })}
+                        />
+                        <input
+                          placeholder="Title under name (e.g. CEO)"
+                          value={editedMember.title}
+                          onChange={(e) => setEditedMember({ ...editedMember, title: e.target.value })}
+                        />
+                        <textarea
+                          placeholder="Bio (optional)"
+                          value={editedMember.bio}
+                          onChange={(e) => setEditedMember({ ...editedMember, bio: e.target.value })}
+                        />
+                        <div className="upload-box">
+                          <label className="upload-label">
+                            Employee Photo (PNG/JPEG)
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg"
+                              onChange={(e) => handleFileUpload(e.target.files[0], (data) => {
+                                setEditedMember({ ...editedMember, photo: data });
+                              })}
+                            />
+                          </label>
+                          {editedMember.photo && (
+                            <div className="upload-preview">
+                              <img src={editedMember.photo} alt="preview" />
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          placeholder="LinkedIn URL (optional)"
+                          value={editedMember.linkedin}
+                          onChange={(e) => setEditedMember({ ...editedMember, linkedin: e.target.value })}
+                        />
+                        <div className="ap-form-buttons">
+                          <button
+                            type="button"
+                            className="ap-btn"
+                            onClick={() => {
+                              if (!editedMember.name || !editedMember.badge) return showToast("Name and badge required");
+                              const updatedTeam = [...(data.team || [])];
+                              updatedTeam[i] = editedMember;
+                              saveData({ ...data, team: updatedTeam });
+                              setEditingMember(null);
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-btn ap-cancel-btn"
+                            onClick={() => setEditingMember(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ap-member-item">
+                        <span>{m.name}</span>
+                        <div className="ap-actions">
+                          <button
+                            type="button"
+                            className="ap-edit-btn"
+                            onClick={() => {
+                              setEditedMember({ ...m });
+                              setEditingMember(i);
+                            }}
+                            title="Edit member"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-del-btn"
+                            onClick={() => saveData({ ...data, team: (data.team || []).filter((_, idx) => idx !== i) })}
+                            title="Delete member"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <input placeholder="Full name" value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} />
