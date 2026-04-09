@@ -302,7 +302,15 @@ export default function App() {
     reader.onload = (e) => {
       callback(e.target.result);
     };
+    reader.onerror = () => {
+      showToast("Failed to read file");
+    };
     reader.readAsDataURL(file);
+  };
+
+  const resetFileInput = (inputId) => {
+    const input = document.getElementById(inputId);
+    if (input) input.value = "";
   };
 
   const saveData = async (next) => {
@@ -947,11 +955,15 @@ export default function App() {
                           <label className="upload-label">
                             Employee Photo (PNG/JPEG)
                             <input
+                              id={`edit-member-photo-${i}`}
                               type="file"
                               accept="image/png,image/jpeg,image/jpg"
-                              onChange={(e) => handleFileUpload(e.target.files[0], (data) => {
-                                setEditedMember({ ...editedMember, photo: data });
-                              })}
+                              onChange={(e) => {
+                                handleFileUpload(e.target.files[0], (data) => {
+                                  setEditedMember({ ...editedMember, photo: data });
+                                });
+                                resetFileInput(`edit-member-photo-${i}`);
+                              }}
                             />
                           </label>
                           {editedMember.photo && (
@@ -1028,12 +1040,16 @@ export default function App() {
                   <label className="upload-label">
                     Employee Photo (PNG/JPEG)
                     <input
+                      id="add-member-photo"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
-                      onChange={(e) => handleFileUpload(e.target.files[0], (data) => {
-                        setMemberPhotoPreview(data);
-                        setNewMember({ ...newMember, photo: data });
-                      })}
+                      onChange={(e) => {
+                        handleFileUpload(e.target.files[0], (data) => {
+                          setMemberPhotoPreview(data);
+                          setNewMember({ ...newMember, photo: data });
+                        });
+                        resetFileInput("add-member-photo");
+                      }}
                     />
                   </label>
                   {memberPhotoPreview && (
@@ -1108,12 +1124,16 @@ export default function App() {
                   <label className="upload-label">
                     Gallery Photo (PNG/JPEG)
                     <input
+                      id="gallery-photo"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
-                      onChange={(e) => handleFileUpload(e.target.files[0], (data) => {
-                        setGalleryPhotoPreview(data);
-                        setNewGallery({ ...newGallery, url: data });
-                      })}
+                      onChange={(e) => {
+                        handleFileUpload(e.target.files[0], (data) => {
+                          setGalleryPhotoPreview(data);
+                          setNewGallery({ ...newGallery, url: data });
+                        });
+                        resetFileInput("gallery-photo");
+                      }}
                     />
                   </label>
                   {galleryPhotoPreview && (
@@ -1145,12 +1165,16 @@ export default function App() {
                   <label className="upload-label">
                     Upload Logo (PNG/JPEG)
                     <input
+                      id="hero-logo"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
-                      onChange={(e) => handleFileUpload(e.target.files[0], (data) => {
-                        setLogoPreview(data);
-                        localStorage.setItem("coreberly-logo", data);
-                      })}
+                      onChange={(e) => {
+                        handleFileUpload(e.target.files[0], (data) => {
+                          setLogoPreview(data);
+                          localStorage.setItem("coreberly-logo", data);
+                        });
+                        resetFileInput("hero-logo");
+                      }}
                     />
                   </label>
                   {logoPreview && (
