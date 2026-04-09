@@ -153,6 +153,14 @@ function SocialIcon({ type }) {
     );
   }
 
+  if (type === "twitter") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M15.5 8.5h1.9V5.8h-2.2c-2.6 0-4.1 1.6-4.1 4.3v1.9H8.9v2.7h2.2V19h2.8v-4.3H17l.4-2.7h-3v-1.7c0-.9.4-1.8 1.1-1.8Z" fill="currentColor" />
+      </svg>
+    );
+  }
+
   if (type === "instagram") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
