@@ -1428,6 +1428,8 @@ section {
   border-radius: 24px;
   width: 100%;
   max-width: 1200px;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
   animation: slideUp 0.4s ease-out;
@@ -1473,6 +1475,11 @@ section {
   margin-bottom: 1.8rem;
 }
 
+.contact-form-section,
+.contact-info-section {
+  min-width: 0;
+}
+
 .form-group {
   margin-bottom: 1.6rem;
   display: flex;
@@ -1498,6 +1505,8 @@ section {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.95rem;
   transition: all 0.2s;
+  width: 100%;
+  max-width: 100%;
 }
 
 .form-group input::placeholder,
@@ -1584,6 +1593,7 @@ section {
   color: #fff;
   text-decoration: none;
   transition: color 0.2s;
+  word-break: break-word;
 }
 
 .contact-value:hover {
@@ -1639,10 +1649,19 @@ section {
 }
 
 @media (max-width: 900px) {
+  .contact-modal-overlay {
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+
+  .contact-modal {
+    max-height: calc(100svh - 2rem);
+  }
+
   .contact-modal-content {
     grid-template-columns: 1fr;
     gap: 2rem;
-    padding: 2rem;
+    padding: 4rem 2rem 2rem;
   }
 
   .contact-modal {
@@ -1657,11 +1676,17 @@ section {
 
 @media (max-width: 560px) {
   .contact-modal-overlay {
-    padding: 1rem;
+    align-items: flex-start;
+    padding: 0.5rem 0.5rem 0.75rem;
+  }
+
+  .contact-modal {
+    max-height: calc(100svh - 1rem);
+    border-radius: 14px;
   }
 
   .contact-modal-content {
-    padding: 1.5rem;
+    padding: 3.5rem 1rem 1.25rem;
     gap: 1.5rem;
   }
 
@@ -1671,9 +1696,33 @@ section {
   }
 
   .modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
     width: 36px;
     height: 36px;
     font-size: 1.2rem;
+  }
+
+  .contact-item {
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+
+  .contact-icon {
+    font-size: 1.4rem;
+    min-width: 32px;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group textarea {
+    min-height: 110px;
+  }
+
+  .form-submit {
+    padding: 0.9rem 1.2rem;
   }
 }
 
