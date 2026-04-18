@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 
 const DEFAULT_LIFE_CONTENT = {
@@ -814,6 +814,26 @@ export default function App() {
             </div>
           ))}
         </div>
+
+        {(data.gallery || []).length > 0 ? (
+          <div className="gallery-grid">
+            {(data.gallery || []).slice(0, 6).map((g, i) => (
+              <div className={`g-item g-item-${i + 1}`} key={`${g.caption}-${i}`}>
+                {g.url ? (
+                  <img src={g.url} alt={g.caption} />
+                ) : (
+                  <div className="g-placeholder">
+                    <span className="g-icon">{galleryIcons[i] || "📷"}</span>
+                    <span className="g-label">{g.caption}</span>
+                  </div>
+                )}
+                <div className="g-overlay">
+                  <div className="g-caption">{g.caption}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section id="industries">
