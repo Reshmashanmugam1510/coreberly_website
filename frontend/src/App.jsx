@@ -1,10 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 
+const DEFAULT_LIFE_CONTENT = {
+  title: "Inside Our World",
+  description: "A glimpse into our culture, innovation, and collaboration where ideas turn into impactful digital products.",
+  highlight1: "Fast-paced Learning Environment",
+  highlight2: "Collaborative Team Culture",
+  highlight3: "Innovation & Creativity",
+  stat1Value: "50+",
+  stat1Label: "Projects Completed",
+  stat2Value: "30+",
+  stat2Label: "Interns Trained",
+  stat3Value: "10+",
+  stat3Label: "Technologies Used",
+  image:
+    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80"
+};
+
 const defaultData = {
   team: [],
   partners: [],
   gallery: [],
+  life: DEFAULT_LIFE_CONTENT,
+  process: [],
+  internship: [],
   hero: {
     tagline: "",
     projects: "",
@@ -120,6 +139,30 @@ const INDUSTRY_TAGS = [
   "🔐 Cybersecurity"
 ];
 
+const DEFAULT_INTERNSHIP_BLOCKS = [
+  {
+    title: "Full-Stack Web Development",
+    description: "Work on React, Node.js, and modern web applications. Learn best practices in frontend and backend development.",
+    duration: "3-6 months",
+    mode: "In-office & Remote",
+    support: "Mentorship"
+  },
+  {
+    title: "Mobile App Development",
+    description: "Develop iOS/Android applications with experienced mobile engineers. Build real apps used by thousands.",
+    duration: "3-6 months",
+    mode: "In-office & Remote",
+    support: "Mentorship"
+  },
+  {
+    title: "UI/UX Design",
+    description: "Design beautiful, user-centric interfaces. Work with Figma, user research, and design systems.",
+    duration: "3-6 months",
+    mode: "In-office & Remote",
+    support: "Mentorship"
+  }
+];
+
 function Logo() {
   return (
     <img src="/coreberly.png" alt="Coreberly" className="company-logo" />
@@ -141,6 +184,36 @@ function teamBadge(m) {
 
 function teamTitle(m) {
   return m.title || "";
+}
+
+function teamSkills(m) {
+  const rawSkills = m.skills || m.skill || "";
+  if (Array.isArray(rawSkills)) return rawSkills.filter(Boolean);
+  return String(rawSkills)
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+}
+
+function teamExperience(m) {
+  return m.experience || m.experienceYears || m.years || "";
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 17.25V20h2.75L17.8 8.95l-2.75-2.75L4 17.25Z" fill="currentColor" />
+      <path d="M15.1 4.9l2.75 2.75 1.4-1.4a1 1 0 0 0 0-1.41l-.94-.94a1 1 0 0 0-1.41 0l-1.8 1Z" fill="currentColor" opacity="0.9" />
+    </svg>
+  );
+}
+
+function DeleteIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 3.75h6a1.5 1.5 0 0 1 1.5 1.5v1.5H19v2h-1.15l-.66 9.15A2.25 2.25 0 0 1 14.94 20H9.06a2.25 2.25 0 0 1-2.25-2.1L6.15 8.75H5v-2h2.5v-1.5A1.5 1.5 0 0 1 9 3.75Zm1 3h4v-1h-4v1Zm-1.88 2 .58 8.04c.02.32.29.56.61.56h5.38c.32 0 .59-.24.61-.56L15.88 8.75H8.12Z" fill="currentColor" />
+    </svg>
+  );
 }
 
 function SocialIcon({ type }) {
@@ -218,6 +291,7 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [lockOpen, setLockOpen] = useState(false);
   const [lockPassword, setLockPassword] = useState("");
+  const [showLockPassword, setShowLockPassword] = useState(false);
   const [lockErr, setLockErr] = useState("");
   const [adminToken, setAdminToken] = useState(localStorage.getItem("adminToken") || "");
   const [tab, setTab] = useState("team");
@@ -227,6 +301,8 @@ export default function App() {
     badge: "",
     title: "",
     bio: "",
+    skills: "",
+    experience: "",
     photo: "",
     linkedin: ""
   });
@@ -236,14 +312,28 @@ export default function App() {
     badge: "",
     title: "",
     bio: "",
+    skills: "",
+    experience: "",
     photo: "",
     linkedin: ""
   });
-  const [newPartner, setNewPartner] = useState({ name: "", type: "", icon: "", badge: "" });
+  const [newPartner, setNewPartner] = useState({ name: "", type: "", icon: "", badge: "", photo: "" });
+  const [editingPartner, setEditingPartner] = useState(null);
+  const [editedPartner, setEditedPartner] = useState({ name: "", type: "", icon: "", badge: "", photo: "" });
+  const [partnerPhotoPreview, setPartnerPhotoPreview] = useState("");
   const [newGallery, setNewGallery] = useState({ url: "", caption: "" });
+  const [editingProcess, setEditingProcess] = useState(null);
+  const [editedProcess, setEditedProcess] = useState({ phase: "", icon: "", title: "", body: "" });
+  const [newProcess, setNewProcess] = useState({ phase: "", icon: "", title: "", body: "" });
+  const [editingInternship, setEditingInternship] = useState(null);
+  const [editedInternship, setEditedInternship] = useState({ title: "", description: "", duration: "", mode: "", support: "" });
+  const [newInternship, setNewInternship] = useState({ title: "", description: "", duration: "", mode: "", support: "" });
+  const [internshipStartIndex, setInternshipStartIndex] = useState(0);
+  const [internshipVisibleCount, setInternshipVisibleCount] = useState(3);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
+  const [lifeImagePreview, setLifeImagePreview] = useState("");
   const [memberPhotoPreview, setMemberPhotoPreview] = useState("");
   const [galleryPhotoPreview, setGalleryPhotoPreview] = useState("");
   const [contactModalOpen, setContactModalOpen] = useState(false);
@@ -256,6 +346,62 @@ export default function App() {
 
   const hero = useMemo(() => data.hero || defaultData.hero, [data.hero]);
   const contact = useMemo(() => data.contact || defaultData.contact, [data.contact]);
+  const life = useMemo(() => ({ ...DEFAULT_LIFE_CONTENT, ...(data.life || {}) }), [data.life]);
+  const lifeHighlights = useMemo(
+    () => [life.highlight1, life.highlight2, life.highlight3].filter(Boolean),
+    [life.highlight1, life.highlight2, life.highlight3]
+  );
+  const lifeStats = useMemo(
+    () => [
+      { value: life.stat1Value, label: life.stat1Label },
+      { value: life.stat2Value, label: life.stat2Label },
+      { value: life.stat3Value, label: life.stat3Label }
+    ].filter((item) => item.value || item.label),
+    [life.stat1Label, life.stat1Value, life.stat2Label, life.stat2Value, life.stat3Label, life.stat3Value]
+  );
+  const internshipBlocks = useMemo(
+    () => (Array.isArray(data.internship) && data.internship.length > 0 ? data.internship : DEFAULT_INTERNSHIP_BLOCKS),
+    [data.internship]
+  );
+  const processSteps = useMemo(
+    () => (Array.isArray(data.process) && data.process.length > 0 ? data.process : PROCESS_STEPS),
+    [data.process]
+  );
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth < 768) {
+        setInternshipVisibleCount(1);
+      } else if (window.innerWidth < 1200) {
+        setInternshipVisibleCount(2);
+      } else {
+        setInternshipVisibleCount(3);
+      }
+    };
+
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    const maxStart = Math.max(0, internshipBlocks.length - internshipVisibleCount);
+    setInternshipStartIndex((prev) => Math.min(prev, maxStart));
+  }, [internshipBlocks.length, internshipVisibleCount]);
+
+  const canSlideInternship = internshipBlocks.length > internshipVisibleCount;
+  const maxInternshipStart = Math.max(0, internshipBlocks.length - internshipVisibleCount);
+  const visibleInternshipBlocks = canSlideInternship
+    ? internshipBlocks.slice(internshipStartIndex, internshipStartIndex + internshipVisibleCount)
+    : internshipBlocks;
+
+  const goPrevInternship = () => {
+    setInternshipStartIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const goNextInternship = () => {
+    setInternshipStartIndex((prev) => Math.min(maxInternshipStart, prev + 1));
+  };
 
   useEffect(() => {
     api
@@ -275,7 +421,7 @@ export default function App() {
     );
     document.querySelectorAll(".fade-up").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [data, loading]);
+  }, [data, loading, internshipStartIndex, internshipVisibleCount]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -326,6 +472,37 @@ export default function App() {
     } catch (e) {
        showToast("Error: " + e.message);
     }
+  };
+
+  const validateHeroData = () => {
+    if (!hero.tagline?.trim()) return "Tagline is required";
+    if (!hero.projects?.trim()) return "Projects stat is required";
+    if (!hero.satisfaction?.trim()) return "Satisfaction stat is required";
+    if (!hero.engineers?.trim()) return "Engineers stat is required";
+    if (!hero.countries?.trim()) return "Countries stat is required";
+    if (!hero.tquote?.trim()) return "Testimonial quote is required";
+    if (!hero.tname?.trim()) return "Testimonial name is required";
+    if (!hero.trole?.trim()) return "Testimonial role is required";
+    return "";
+  };
+
+  const validateContactData = () => {
+    if (!contact.email?.trim()) return "Contact email is required";
+    if (!/^\S+@\S+\.\S+$/.test(contact.email.trim())) return "Enter a valid contact email";
+    return "";
+  };
+
+  const validateLifeData = () => {
+    if (!life.title?.trim()) return "Life section title is required";
+    if (!life.description?.trim()) return "Life section description is required";
+    if (!life.highlight1?.trim() || !life.highlight2?.trim() || !life.highlight3?.trim()) {
+      return "All three life highlights are required";
+    }
+    if (!life.stat1Value?.trim() || !life.stat1Label?.trim()) return "Stat 1 value and label are required";
+    if (!life.stat2Value?.trim() || !life.stat2Label?.trim()) return "Stat 2 value and label are required";
+    if (!life.stat3Value?.trim() || !life.stat3Label?.trim()) return "Stat 3 value and label are required";
+    if (!life.image?.trim()) return "Life section image is required";
+    return "";
   };
 
   const unlock = async () => {
@@ -501,7 +678,7 @@ export default function App() {
           A structured, transparent approach that keeps every project on time, on budget, and above expectations.
         </p>
         <div className="process-timeline">
-          {PROCESS_STEPS.map((step, i) => {
+          {processSteps.map((step, i) => {
             const card = (
               <div className="process-card fade-up">
                 <span className="phase-badge">Phase {step.phase}</span>
@@ -510,14 +687,15 @@ export default function App() {
                 <p>{step.body}</p>
               </div>
             );
+
             const rail = (
-              <div className="process-rail">
-                <div className="process-line" />
+              <div className="process-dot-wrap fade-up">
                 <div className="process-dot">{step.phase}</div>
               </div>
             );
+
             return (
-              <div key={step.phase} className="process-row">
+              <div key={`${step.phase}-${i}`} className="process-row">
                 {i % 2 === 0 ? (
                   <>
                     <div className="process-card-col">{card}</div>
@@ -546,7 +724,9 @@ export default function App() {
         <div className="partners-grid">
            {(data.partners || []).map((p, i) => (
             <div className="partner-card fade-up" key={`${p.name}-${i}`}>
-              <div className="partner-logo">{p.icon || "🏢"}</div>
+              <div className="partner-logo">
+                {p.photo ? <img src={p.photo} alt={p.name} /> : <span>{p.icon || "🏢"}</span>}
+              </div>
               <div className="partner-info">
                 <div className="partner-name">{p.name}</div>
                 <div className="partner-type">{p.type}</div>
@@ -566,7 +746,7 @@ export default function App() {
         <div className="team-grid">
            {(data.team || []).map((m, i) => (
             <div className="team-card fade-up" key={`${m.name}-${i}`}>
-              <div className="team-photo">
+              <div className={`team-photo ${i < 2 ? "team-photo--top-focus" : ""}`}>
                 {m.photo ? (
                   <img src={m.photo} alt={m.name} />
                 ) : (
@@ -580,6 +760,16 @@ export default function App() {
                 <div className="team-name">{m.name}</div>
                 {teamTitle(m) ? <div className="team-title-line">{teamTitle(m)}</div> : null}
                 {m.bio ? <div className="team-bio">{m.bio}</div> : null}
+                {teamSkills(m).length > 0 ? (
+                  <div className="team-skill-list">
+                    {teamSkills(m).map((skill) => (
+                      <span className="team-skill-chip" key={`${m.name}-${skill}`}>
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {teamExperience(m) ? <div className="team-experience">EXP: {teamExperience(m)}</div> : null}
                 {m.linkedin ? (
                   <div className="team-footer">
                     <a href={m.linkedin} target="_blank" rel="noreferrer" className="team-social-link">
@@ -595,25 +785,55 @@ export default function App() {
 
       <section id="gallery">
         <div className="sec-label">Life at Coreberly</div>
-        <h2 className="sec-title">Inside Our World</h2>
-        <p className="sec-sub">A glimpse into the culture, energy, and space where great products are born.</p>
-        <div className="gallery-grid">
-           {(data.gallery || []).slice(0, 6).map((g, i) => (
-            <div className={`g-item g-item-${i + 1}`} key={`${g.caption}-${i}`}>
-              {g.url ? (
-                <img src={g.url} alt={g.caption} />
-              ) : (
-                <div className="g-placeholder">
-                  <span className="g-icon">{galleryIcons[i] || "📷"}</span>
-                  <span className="g-label">{g.caption}</span>
+        <div className="life-showcase">
+          <div className="life-content">
+            <h2 className="sec-title">{life.title}</h2>
+            <p className="sec-sub">{life.description}</p>
+            <div className="life-highlights">
+              {lifeHighlights.map((item) => (
+                <div className="life-highlight" key={item}>
+                  <span className="life-highlight-icon">🤝</span>
+                  <span>{item}</span>
                 </div>
-              )}
-              <div className="g-overlay">
-                <div className="g-caption">{g.caption}</div>
-              </div>
+              ))}
+            </div>
+          </div>
+          <div className="life-image-wrap">
+            {life.image ? (
+              <img src={life.image} alt="Life at Coreberly" className="life-image" />
+            ) : (
+              <div className="life-image-placeholder">Upload image from admin</div>
+            )}
+          </div>
+        </div>
+        <div className="life-stats">
+          {lifeStats.map((item, idx) => (
+            <div className="life-stat" key={`${item.label}-${idx}`}>
+              <div className="life-stat-value">{item.value}</div>
+              <div className="life-stat-label">{item.label}</div>
             </div>
           ))}
         </div>
+
+        {(data.gallery || []).length > 0 ? (
+          <div className="gallery-grid">
+            {(data.gallery || []).slice(0, 6).map((g, i) => (
+              <div className={`g-item g-item-${i + 1}`} key={`${g.caption}-${i}`}>
+                {g.url ? (
+                  <img src={g.url} alt={g.caption} />
+                ) : (
+                  <div className="g-placeholder">
+                    <span className="g-icon">{galleryIcons[i] || "📷"}</span>
+                    <span className="g-label">{g.caption}</span>
+                  </div>
+                )}
+                <div className="g-overlay">
+                  <div className="g-caption">{g.caption}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section id="industries">
@@ -624,12 +844,14 @@ export default function App() {
           Across Industries
         </h2>
         <p className="sec-sub">Deep vertical knowledge that lets us hit the ground running — no learning curve on your dime.</p>
-        <div className="industry-tags">
-          {INDUSTRY_TAGS.map((t) => (
-            <span className="industry-tag" key={t}>
-              {t}
-            </span>
-          ))}
+        <div className="industry-marquee">
+          <div className="industry-track">
+            {[...INDUSTRY_TAGS, ...INDUSTRY_TAGS].map((t, i) => (
+              <span className="industry-tag" key={`${t}-${i}`} aria-hidden={i >= INDUSTRY_TAGS.length}>
+                {t}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -643,37 +865,44 @@ export default function App() {
         <p className="sec-sub light">
           Join our team and gain real-world experience building cutting-edge digital products alongside industry experts.
         </p>
+        {canSlideInternship ? (
+          <div className="internship-nav" aria-label="Internship cards navigation">
+            <button
+              type="button"
+              className="internship-nav-btn"
+              onClick={goPrevInternship}
+              disabled={internshipStartIndex === 0}
+              aria-label="Show previous internship blocks"
+            >
+              <span aria-hidden="true">&#8249;</span>
+            </button>
+            <div className="internship-nav-meta">
+              {internshipStartIndex + 1}-{Math.min(internshipStartIndex + internshipVisibleCount, internshipBlocks.length)} of {internshipBlocks.length}
+            </div>
+            <button
+              type="button"
+              className="internship-nav-btn"
+              onClick={goNextInternship}
+              disabled={internshipStartIndex >= maxInternshipStart}
+              aria-label="Show next internship blocks"
+            >
+              <span aria-hidden="true">&#8250;</span>
+            </button>
+          </div>
+        ) : null}
         <div className="internship-grid">
-          <div className="internship-card fade-up">
-            <div className="internship-number">01</div>
-            <h4>Full-Stack Web Development</h4>
-            <p>Work on React, Node.js, and modern web applications. Learn best practices in frontend and backend development.</p>
-            <div className="internship-perks">
-              <span className="perk">🎯 3-6 months</span>
-              <span className="perk">🏙️ In-office & Remote</span>
-              <span className="perk">💡 Mentorship</span>
+          {visibleInternshipBlocks.map((item, i) => (
+            <div className="internship-card fade-up" key={`${item.title}-${i}`}>
+              <div className="internship-number">{String(internshipStartIndex + i + 1).padStart(2, "0")}</div>
+              <h4>{item.title}</h4>
+              <p>{item.description}</p>
+              <div className="internship-perks">
+                <span className="perk">🎯 {item.duration}</span>
+                <span className="perk">🏙️ {item.mode}</span>
+                <span className="perk">💡 {item.support}</span>
+              </div>
             </div>
-          </div>
-          <div className="internship-card fade-up">
-            <div className="internship-number">02</div>
-            <h4>Mobile App Development</h4>
-            <p>Develop iOS/Android applications with experienced mobile engineers. Build real apps used by thousands.</p>
-            <div className="internship-perks">
-              <span className="perk">🎯 3-6 months</span>
-              <span className="perk">🏙️ In-office & Remote</span>
-              <span className="perk">💡 Mentorship</span>
-            </div>
-          </div>
-          <div className="internship-card fade-up">
-            <div className="internship-number">03</div>
-            <h4>UI/UX Design</h4>
-            <p>Design beautiful, user-centric interfaces. Work with Figma, user research, and design systems.</p>
-            <div className="internship-perks">
-              <span className="perk">🎯 3-6 months</span>
-              <span className="perk">🏙️ In-office & Remote</span>
-              <span className="perk">💡 Mentorship</span>
-            </div>
-          </div>
+          ))}
         </div>
         <div className="internship-cta">
           <p>Ready to kickstart your tech career?</p>
@@ -890,13 +1119,32 @@ export default function App() {
           <div className="lock-box">
             <h3>Admin Access</h3>
             <p className="lock-hint">Enter password to continue</p>
-            <input
-              value={lockPassword}
-              onChange={(e) => setLockPassword(e.target.value)}
-              type="password"
-              placeholder="Enter password"
-              onKeyDown={(e) => e.key === "Enter" && unlock()}
-            />
+            <div className="lock-pass-wrap">
+              <input
+                value={lockPassword}
+                onChange={(e) => setLockPassword(e.target.value)}
+                type={showLockPassword ? "text" : "password"}
+                placeholder="Enter password"
+                onKeyDown={(e) => e.key === "Enter" && unlock()}
+              />
+              <button
+                type="button"
+                className="lock-pass-toggle"
+                onClick={() => setShowLockPassword((v) => !v)}
+                aria-label={showLockPassword ? "Hide password" : "Show password"}
+                title={showLockPassword ? "Hide password" : "Show password"}
+              >
+                {showLockPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 4.4 4.4 3 21 19.6 19.6 21l-3.2-3.2A11.35 11.35 0 0 1 12 18.8C6.75 18.8 2.35 15.67.8 12c.68-1.6 1.83-3.05 3.3-4.24L3 6.6l1.4-1.4 16.6 16.6-1.4 1.4-2.18-2.18M9.04 12l2.96 2.96a3.2 3.2 0 0 1-2.96-2.96m7.88 1.22L14.7 11a3.2 3.2 0 0 0-3.7-3.7L9.2 5.5c.88-.26 1.8-.4 2.8-.4 5.25 0 9.65 3.13 11.2 6.8-.58 1.36-1.46 2.6-2.58 3.62l-1.7-1.7c.61-.55 1.1-1.18 1.47-1.82-.98-2.08-3.08-3.74-5.53-4.45l1.9 1.9a3.2 3.2 0 0 1-.84 3.77" fill="currentColor" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 5.2c5.25 0 9.65 3.13 11.2 6.8-1.55 3.67-5.95 6.8-11.2 6.8S2.35 15.67.8 12C2.35 8.33 6.75 5.2 12 5.2Zm0 2c-3.95 0-7.35 2.23-8.95 4.8 1.6 2.57 5 4.8 8.95 4.8s7.35-2.23 8.95-4.8c-1.6-2.57-5-4.8-8.95-4.8Zm0 1.8a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" fill="currentColor" />
+                  </svg>
+                )}
+              </button>
+            </div>
             <div className="lock-err">{lockErr}</div>
             <button className="lock-btn" type="button" onClick={unlock}>
               Unlock Panel
@@ -907,7 +1155,6 @@ export default function App() {
           </div>
         </div>
       )}
-// Admin Panel JSX
       {adminOpen && (
         <div id="admin-panel" className="open">
           <div className="ap-header">
@@ -918,7 +1165,7 @@ export default function App() {
           </div>
           <div className="ap-body">
             <div className="ap-tabs">
-              {["team", "partners", "gallery", "hero", "contact"].map((t) => (
+              {["team", "partners", "gallery", "life", "process", "internship", "hero", "contact"].map((t) => (
                 <button key={t} type="button" className={`ap-tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
                   {t}
                 </button>
@@ -932,17 +1179,17 @@ export default function App() {
                     {editingMember === i ? (
                       <div className="ap-edit-form">
                         <input
-                          placeholder="Full name"
+                          placeholder="Full name (required)"
                           value={editedMember.name}
                           onChange={(e) => setEditedMember({ ...editedMember, name: e.target.value })}
                         />
                         <input
-                          placeholder="Badge on photo (e.g. FOUNDER & CEO)"
+                          placeholder="Badge on photo (required, e.g. FOUNDER & CEO)"
                           value={editedMember.badge}
                           onChange={(e) => setEditedMember({ ...editedMember, badge: e.target.value })}
                         />
                         <input
-                          placeholder="Title under name (e.g. CEO)"
+                          placeholder="Title under name (required, e.g. CEO)"
                           value={editedMember.title}
                           onChange={(e) => setEditedMember({ ...editedMember, title: e.target.value })}
                         />
@@ -950,6 +1197,16 @@ export default function App() {
                           placeholder="Bio (optional)"
                           value={editedMember.bio}
                           onChange={(e) => setEditedMember({ ...editedMember, bio: e.target.value })}
+                        />
+                        <input
+                          placeholder="Skills (comma separated)"
+                          value={editedMember.skills || ""}
+                          onChange={(e) => setEditedMember({ ...editedMember, skills: e.target.value })}
+                        />
+                        <input
+                          placeholder="Experience (e.g. 4+ Years)"
+                          value={editedMember.experience || ""}
+                          onChange={(e) => setEditedMember({ ...editedMember, experience: e.target.value })}
                         />
                         <div className="upload-box">
                           <label className="upload-label">
@@ -982,7 +1239,7 @@ export default function App() {
                             type="button"
                             className="ap-btn"
                             onClick={() => {
-                              if (!editedMember.name || !editedMember.badge) return showToast("Name and badge required");
+                              if (!editedMember.name || !editedMember.badge || !editedMember.title) return showToast("Name, badge and title are required");
                               const updatedTeam = [...(data.team || [])];
                               updatedTeam[i] = editedMember;
                               saveData({ ...data, team: updatedTeam });
@@ -1012,30 +1269,42 @@ export default function App() {
                               setEditingMember(i);
                             }}
                             title="Edit member"
+                            aria-label="Edit member"
                           >
-                            ✎
+                            <EditIcon />
                           </button>
                           <button
                             type="button"
                             className="ap-del-btn"
                             onClick={() => saveData({ ...data, team: (data.team || []).filter((_, idx) => idx !== i) })}
                             title="Delete member"
+                            aria-label="Delete member"
                           >
-                            ✕
+                            <DeleteIcon />
                           </button>
                         </div>
                       </div>
                     )}
                   </div>
                 ))}
-                <input placeholder="Full name" value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} />
+                <input placeholder="Full name (required)" value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} />
                 <input
-                  placeholder="Badge on photo (e.g. FOUNDER & CEO)"
+                  placeholder="Badge on photo (required, e.g. FOUNDER & CEO)"
                   value={newMember.badge}
                   onChange={(e) => setNewMember({ ...newMember, badge: e.target.value })}
                 />
-                <input placeholder="Title under name (e.g. CEO)" value={newMember.title} onChange={(e) => setNewMember({ ...newMember, title: e.target.value })} />
+                <input placeholder="Title under name (required, e.g. CEO)" value={newMember.title} onChange={(e) => setNewMember({ ...newMember, title: e.target.value })} />
                 <textarea placeholder="Bio (optional)" value={newMember.bio} onChange={(e) => setNewMember({ ...newMember, bio: e.target.value })} />
+                <input
+                  placeholder="Skills (comma separated)"
+                  value={newMember.skills}
+                  onChange={(e) => setNewMember({ ...newMember, skills: e.target.value })}
+                />
+                <input
+                  placeholder="Experience (e.g. 4+ Years)"
+                  value={newMember.experience}
+                  onChange={(e) => setNewMember({ ...newMember, experience: e.target.value })}
+                />
                 <div className="upload-box">
                   <label className="upload-label">
                     Employee Photo (PNG/JPEG)
@@ -1063,9 +1332,9 @@ export default function App() {
                   type="button"
                   className="ap-btn"
                   onClick={() => {
-                    if (!newMember.name || !newMember.badge) return showToast("Name and badge required");
+                    if (!newMember.name || !newMember.badge || !newMember.title) return showToast("Name, badge and title are required");
                      saveData({ ...data, team: [...(data.team || []), { ...newMember }] });
-                    setNewMember({ name: "", badge: "", title: "", bio: "", photo: "", linkedin: "" });
+                    setNewMember({ name: "", badge: "", title: "", bio: "", skills: "", experience: "", photo: "", linkedin: "" });
                   }}
                 >
                   Add Member
@@ -1075,29 +1344,138 @@ export default function App() {
 
             {tab === "partners" && (
               <div className="ap-section active">
-                 {(data.partners || []).map((p, i) => (
-                  <div className="ap-member-item" key={`${p.name}-${i}`}>
-                    <span>{p.name}</span>
-                    <button
-                      type="button"
-                      className="ap-del-btn"
-                       onClick={() => saveData({ ...data, partners: (data.partners || []).filter((_, idx) => idx !== i) })}
-                    >
-                      ✕
-                    </button>
+                {(data.partners || []).map((p, i) => (
+                  <div key={`${p.name}-${i}`}>
+                    {editingPartner === i ? (
+                      <div className="ap-edit-form">
+                        <input
+                          placeholder="Company name (required)"
+                          value={editedPartner.name}
+                          onChange={(e) => setEditedPartner({ ...editedPartner, name: e.target.value })}
+                        />
+                        <input
+                          placeholder="Partner type (required, e.g. Cloud Partner)"
+                          value={editedPartner.type}
+                          onChange={(e) => setEditedPartner({ ...editedPartner, type: e.target.value })}
+                        />
+                        <input
+                          placeholder="Icon / emoji"
+                          value={editedPartner.icon}
+                          onChange={(e) => setEditedPartner({ ...editedPartner, icon: e.target.value })}
+                        />
+                        <input
+                          placeholder="Badge (optional)"
+                          value={editedPartner.badge}
+                          onChange={(e) => setEditedPartner({ ...editedPartner, badge: e.target.value })}
+                        />
+                        <div className="upload-box">
+                          <label className="upload-label">
+                            Partner Image / Logo
+                            <input
+                              id={`edit-partner-photo-${i}`}
+                              type="file"
+                              accept="image/png,image/jpeg,image/jpg"
+                              onChange={(e) => {
+                                handleFileUpload(e.target.files[0], (data) => {
+                                  setEditedPartner({ ...editedPartner, photo: data });
+                                });
+                                resetFileInput(`edit-partner-photo-${i}`);
+                              }}
+                            />
+                          </label>
+                          {editedPartner.photo && (
+                            <div className="upload-preview">
+                              <img src={editedPartner.photo} alt="preview" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="ap-form-buttons">
+                          <button
+                            type="button"
+                            className="ap-btn"
+                            onClick={() => {
+                              if (!editedPartner.name || !editedPartner.type) return showToast("Company name and type are required");
+                              const updatedPartners = [...(data.partners || [])];
+                              updatedPartners[i] = editedPartner;
+                              saveData({ ...data, partners: updatedPartners });
+                              setEditingPartner(null);
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-btn ap-cancel-btn"
+                            onClick={() => setEditingPartner(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ap-member-item">
+                        <span>{p.name}</span>
+                        <div className="ap-actions">
+                          <button
+                            type="button"
+                            className="ap-edit-btn"
+                            onClick={() => {
+                              setEditedPartner({ ...p });
+                              setEditingPartner(i);
+                            }}
+                            title="Edit partner"
+                            aria-label="Edit partner"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-del-btn"
+                            onClick={() => saveData({ ...data, partners: (data.partners || []).filter((_, idx) => idx !== i) })}
+                            title="Delete partner"
+                            aria-label="Delete partner"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
-                <input placeholder="Company Name" value={newPartner.name} onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })} />
-                <input placeholder="Type" value={newPartner.type} onChange={(e) => setNewPartner({ ...newPartner, type: e.target.value })} />
+                <input placeholder="Company name (required)" value={newPartner.name} onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })} />
+                <input placeholder="Partner type (required, e.g. Cloud Partner)" value={newPartner.type} onChange={(e) => setNewPartner({ ...newPartner, type: e.target.value })} />
                 <input placeholder="Icon / emoji" value={newPartner.icon} onChange={(e) => setNewPartner({ ...newPartner, icon: e.target.value })} />
                 <input placeholder="Badge (optional)" value={newPartner.badge} onChange={(e) => setNewPartner({ ...newPartner, badge: e.target.value })} />
+                <div className="upload-box">
+                  <label className="upload-label">
+                    Partner Image / Logo
+                    <input
+                      id="add-partner-photo"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        handleFileUpload(e.target.files[0], (data) => {
+                          setPartnerPhotoPreview(data);
+                          setNewPartner({ ...newPartner, photo: data });
+                        });
+                        resetFileInput("add-partner-photo");
+                      }}
+                    />
+                  </label>
+                  {partnerPhotoPreview && (
+                    <div className="upload-preview">
+                      <img src={partnerPhotoPreview} alt="preview" />
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   className="ap-btn"
                   onClick={() => {
-                    if (!newPartner.name) return showToast("Company name required");
-                     saveData({ ...data, partners: [...(data.partners || []), { ...newPartner, icon: newPartner.icon || "🏢" }] });
-                    setNewPartner({ name: "", type: "", icon: "", badge: "" });
+                    if (!newPartner.name || !newPartner.type) return showToast("Company name and type are required");
+                    saveData({ ...data, partners: [...(data.partners || []), { ...newPartner, icon: newPartner.icon || "🏢" }] });
+                    setNewPartner({ name: "", type: "", icon: "", badge: "", photo: "" });
+                    setPartnerPhotoPreview("");
                   }}
                 >
                   Add Partner
@@ -1119,7 +1497,7 @@ export default function App() {
                     </button>
                   </div>
                 ))}
-                <input placeholder="Caption" value={newGallery.caption} onChange={(e) => setNewGallery({ ...newGallery, caption: e.target.value })} />
+                <input placeholder="Photo caption (required)" value={newGallery.caption} onChange={(e) => setNewGallery({ ...newGallery, caption: e.target.value })} />
                 <div className="upload-box">
                   <label className="upload-label">
                     Gallery Photo (PNG/JPEG)
@@ -1158,6 +1536,357 @@ export default function App() {
               </div>
             )}
 
+            {tab === "life" && (
+              <div className="ap-section active">
+                <input
+                  placeholder="Section title (required, e.g. Inside Our World)"
+                  value={life.title}
+                  onChange={(e) => setData({ ...data, life: { ...life, title: e.target.value } })}
+                />
+                <textarea
+                  placeholder="Section description (required)"
+                  value={life.description}
+                  onChange={(e) => setData({ ...data, life: { ...life, description: e.target.value } })}
+                />
+                <input
+                  placeholder="Highlight 1 (required)"
+                  value={life.highlight1}
+                  onChange={(e) => setData({ ...data, life: { ...life, highlight1: e.target.value } })}
+                />
+                <input
+                  placeholder="Highlight 2 (required)"
+                  value={life.highlight2}
+                  onChange={(e) => setData({ ...data, life: { ...life, highlight2: e.target.value } })}
+                />
+                <input
+                  placeholder="Highlight 3 (required)"
+                  value={life.highlight3}
+                  onChange={(e) => setData({ ...data, life: { ...life, highlight3: e.target.value } })}
+                />
+
+                <input
+                  placeholder="Stat 1 value (required, e.g. 50+)"
+                  value={life.stat1Value}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat1Value: e.target.value } })}
+                />
+                <input
+                  placeholder="Stat 1 label (required, e.g. Projects Completed)"
+                  value={life.stat1Label}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat1Label: e.target.value } })}
+                />
+                <input
+                  placeholder="Stat 2 value (required, e.g. 30+)"
+                  value={life.stat2Value}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat2Value: e.target.value } })}
+                />
+                <input
+                  placeholder="Stat 2 label (required, e.g. Interns Trained)"
+                  value={life.stat2Label}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat2Label: e.target.value } })}
+                />
+                <input
+                  placeholder="Stat 3 value (required, e.g. 10+)"
+                  value={life.stat3Value}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat3Value: e.target.value } })}
+                />
+                <input
+                  placeholder="Stat 3 label (required, e.g. Technologies Used)"
+                  value={life.stat3Label}
+                  onChange={(e) => setData({ ...data, life: { ...life, stat3Label: e.target.value } })}
+                />
+
+                <div className="upload-box">
+                  <label className="upload-label">
+                    Life Section Image (PNG/JPEG)
+                    <input
+                      id="life-image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        handleFileUpload(e.target.files[0], (imageData) => {
+                          setLifeImagePreview(imageData);
+                          setData({ ...data, life: { ...life, image: imageData } });
+                        });
+                        resetFileInput("life-image");
+                      }}
+                    />
+                  </label>
+                  {(lifeImagePreview || life.image) && (
+                    <div className="upload-preview">
+                      <img src={lifeImagePreview || life.image} alt="preview" />
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    const err = validateLifeData();
+                    if (err) return showToast(err);
+                    saveData(data);
+                  }}
+                >
+                  Save Life Section
+                </button>
+              </div>
+            )}
+
+            {tab === "process" && (
+              <div className="ap-section active">
+                {processSteps.map((step, i) => (
+                  <div key={`${step.phase}-${i}`}>
+                    {editingProcess === i ? (
+                      <div className="ap-edit-form">
+                        <input
+                          placeholder="Phase number (required, e.g. 01)"
+                          value={editedProcess.phase}
+                          onChange={(e) => setEditedProcess({ ...editedProcess, phase: e.target.value })}
+                        />
+                        <input
+                          placeholder="Icon / emoji (required, e.g. 🔍)"
+                          value={editedProcess.icon}
+                          onChange={(e) => setEditedProcess({ ...editedProcess, icon: e.target.value })}
+                        />
+                        <input
+                          placeholder="Step title (required)"
+                          value={editedProcess.title}
+                          onChange={(e) => setEditedProcess({ ...editedProcess, title: e.target.value })}
+                        />
+                        <textarea
+                          placeholder="Step description (required)"
+                          value={editedProcess.body}
+                          onChange={(e) => setEditedProcess({ ...editedProcess, body: e.target.value })}
+                        />
+                        <div className="ap-form-buttons">
+                          <button
+                            type="button"
+                            className="ap-btn"
+                            onClick={() => {
+                              if (!editedProcess.phase || !editedProcess.icon || !editedProcess.title || !editedProcess.body) {
+                                return showToast("All process fields are required");
+                              }
+                              const updatedSteps = [...processSteps];
+                              updatedSteps[i] = editedProcess;
+                              saveData({ ...data, process: updatedSteps });
+                              setEditingProcess(null);
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button type="button" className="ap-btn ap-cancel-btn" onClick={() => setEditingProcess(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ap-member-item">
+                        <span>{`Phase ${step.phase} - ${step.title}`}</span>
+                        <div className="ap-actions">
+                          <button
+                            type="button"
+                            className="ap-edit-btn"
+                            onClick={() => {
+                              setEditedProcess({
+                                phase: step.phase || "",
+                                icon: step.icon || "",
+                                title: step.title || "",
+                                body: step.body || ""
+                              });
+                              setEditingProcess(i);
+                            }}
+                            title="Edit process step"
+                            aria-label="Edit process step"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-del-btn"
+                            onClick={() => {
+                              const updatedSteps = processSteps.filter((_, idx) => idx !== i);
+                              saveData({ ...data, process: updatedSteps });
+                            }}
+                            title="Delete process step"
+                            aria-label="Delete process step"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <input
+                  placeholder="Phase number (required, e.g. 05)"
+                  value={newProcess.phase}
+                  onChange={(e) => setNewProcess({ ...newProcess, phase: e.target.value })}
+                />
+                <input
+                  placeholder="Icon / emoji (required, e.g. 📊)"
+                  value={newProcess.icon}
+                  onChange={(e) => setNewProcess({ ...newProcess, icon: e.target.value })}
+                />
+                <input
+                  placeholder="Step title (required)"
+                  value={newProcess.title}
+                  onChange={(e) => setNewProcess({ ...newProcess, title: e.target.value })}
+                />
+                <textarea
+                  placeholder="Step description (required)"
+                  value={newProcess.body}
+                  onChange={(e) => setNewProcess({ ...newProcess, body: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    if (!newProcess.phase || !newProcess.icon || !newProcess.title || !newProcess.body) {
+                      return showToast("All process fields are required");
+                    }
+                    saveData({ ...data, process: [...processSteps, { ...newProcess }] });
+                    setNewProcess({ phase: "", icon: "", title: "", body: "" });
+                  }}
+                >
+                  Add Process Step
+                </button>
+              </div>
+            )}
+
+            {tab === "internship" && (
+              <div className="ap-section active">
+                {internshipBlocks.map((item, i) => (
+                  <div key={`${item.title}-${i}`}>
+                    {editingInternship === i ? (
+                      <div className="ap-edit-form">
+                        <input
+                          placeholder="Internship title (required)"
+                          value={editedInternship.title}
+                          onChange={(e) => setEditedInternship({ ...editedInternship, title: e.target.value })}
+                        />
+                        <textarea
+                          placeholder="Internship description (required)"
+                          value={editedInternship.description}
+                          onChange={(e) => setEditedInternship({ ...editedInternship, description: e.target.value })}
+                        />
+                        <input
+                          placeholder="Duration (required, e.g. 3-6 months)"
+                          value={editedInternship.duration}
+                          onChange={(e) => setEditedInternship({ ...editedInternship, duration: e.target.value })}
+                        />
+                        <input
+                          placeholder="Mode (required, e.g. In-office & Remote)"
+                          value={editedInternship.mode}
+                          onChange={(e) => setEditedInternship({ ...editedInternship, mode: e.target.value })}
+                        />
+                        <input
+                          placeholder="Support (required, e.g. Mentorship)"
+                          value={editedInternship.support}
+                          onChange={(e) => setEditedInternship({ ...editedInternship, support: e.target.value })}
+                        />
+                        <div className="ap-form-buttons">
+                          <button
+                            type="button"
+                            className="ap-btn"
+                            onClick={() => {
+                              if (!editedInternship.title || !editedInternship.description || !editedInternship.duration || !editedInternship.mode || !editedInternship.support) {
+                                return showToast("All internship fields are required");
+                              }
+                              const updatedInternships = [...internshipBlocks];
+                              updatedInternships[i] = editedInternship;
+                              saveData({ ...data, internship: updatedInternships });
+                              setEditingInternship(null);
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button type="button" className="ap-btn ap-cancel-btn" onClick={() => setEditingInternship(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ap-member-item">
+                        <span>{item.title}</span>
+                        <div className="ap-actions">
+                          <button
+                            type="button"
+                            className="ap-edit-btn"
+                            onClick={() => {
+                              setEditedInternship({
+                                title: item.title || "",
+                                description: item.description || "",
+                                duration: item.duration || "",
+                                mode: item.mode || "",
+                                support: item.support || ""
+                              });
+                              setEditingInternship(i);
+                            }}
+                            title="Edit internship"
+                            aria-label="Edit internship"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-del-btn"
+                            onClick={() => {
+                              const updatedInternships = internshipBlocks.filter((_, idx) => idx !== i);
+                              saveData({ ...data, internship: updatedInternships });
+                            }}
+                            title="Delete internship"
+                            aria-label="Delete internship"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <input
+                  placeholder="Internship title (required)"
+                  value={newInternship.title}
+                  onChange={(e) => setNewInternship({ ...newInternship, title: e.target.value })}
+                />
+                <textarea
+                  placeholder="Internship description (required)"
+                  value={newInternship.description}
+                  onChange={(e) => setNewInternship({ ...newInternship, description: e.target.value })}
+                />
+                <input
+                  placeholder="Duration (required, e.g. 3-6 months)"
+                  value={newInternship.duration}
+                  onChange={(e) => setNewInternship({ ...newInternship, duration: e.target.value })}
+                />
+                <input
+                  placeholder="Mode (required, e.g. In-office & Remote)"
+                  value={newInternship.mode}
+                  onChange={(e) => setNewInternship({ ...newInternship, mode: e.target.value })}
+                />
+                <input
+                  placeholder="Support (required, e.g. Mentorship)"
+                  value={newInternship.support}
+                  onChange={(e) => setNewInternship({ ...newInternship, support: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    if (!newInternship.title || !newInternship.description || !newInternship.duration || !newInternship.mode || !newInternship.support) {
+                      return showToast("All internship fields are required");
+                    }
+                    saveData({ ...data, internship: [...internshipBlocks, { ...newInternship }] });
+                    setNewInternship({ title: "", description: "", duration: "", mode: "", support: "" });
+                  }}
+                >
+                  Add Internship Block
+                </button>
+              </div>
+            )}
+
             {tab === "hero" && (
               <div className="ap-section active">
                 <label className="ap-label">Company Logo</label>
@@ -1184,17 +1913,25 @@ export default function App() {
                   )}
                 </div>
                 <label className="ap-label">Tagline</label>
-                <textarea value={hero.tagline} onChange={(e) => setData({ ...data, hero: { ...hero, tagline: e.target.value } })} />
+                <textarea placeholder="Main hero tagline (required)" value={hero.tagline} onChange={(e) => setData({ ...data, hero: { ...hero, tagline: e.target.value } })} />
                 <label className="ap-label">Stats</label>
-                <input value={hero.projects} onChange={(e) => setData({ ...data, hero: { ...hero, projects: e.target.value } })} />
-                <input value={hero.satisfaction} onChange={(e) => setData({ ...data, hero: { ...hero, satisfaction: e.target.value } })} />
-                <input value={hero.engineers} onChange={(e) => setData({ ...data, hero: { ...hero, engineers: e.target.value } })} />
-                <input value={hero.countries} onChange={(e) => setData({ ...data, hero: { ...hero, countries: e.target.value } })} />
+                <input placeholder="Projects completed (required, e.g. 150+)" value={hero.projects} onChange={(e) => setData({ ...data, hero: { ...hero, projects: e.target.value } })} />
+                <input placeholder="Client satisfaction (required, e.g. 98%)" value={hero.satisfaction} onChange={(e) => setData({ ...data, hero: { ...hero, satisfaction: e.target.value } })} />
+                <input placeholder="Engineers count (required, e.g. 40+)" value={hero.engineers} onChange={(e) => setData({ ...data, hero: { ...hero, engineers: e.target.value } })} />
+                <input placeholder="Countries served (required, e.g. 12+)" value={hero.countries} onChange={(e) => setData({ ...data, hero: { ...hero, countries: e.target.value } })} />
                 <label className="ap-label">Testimonial</label>
-                <textarea value={hero.tquote} onChange={(e) => setData({ ...data, hero: { ...hero, tquote: e.target.value } })} />
-                <input value={hero.tname} onChange={(e) => setData({ ...data, hero: { ...hero, tname: e.target.value } })} />
-                <input value={hero.trole} onChange={(e) => setData({ ...data, hero: { ...hero, trole: e.target.value } })} />
-                <button type="button" className="ap-btn" onClick={() => saveData(data)}>
+                <textarea placeholder="Testimonial quote (required)" value={hero.tquote} onChange={(e) => setData({ ...data, hero: { ...hero, tquote: e.target.value } })} />
+                <input placeholder="Client name (required)" value={hero.tname} onChange={(e) => setData({ ...data, hero: { ...hero, tname: e.target.value } })} />
+                <input placeholder="Client role/company (required)" value={hero.trole} onChange={(e) => setData({ ...data, hero: { ...hero, trole: e.target.value } })} />
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    const err = validateHeroData();
+                    if (err) return showToast(err);
+                    saveData(data);
+                  }}
+                >
                   Save Hero
                 </button>
               </div>
@@ -1202,11 +1939,19 @@ export default function App() {
 
             {tab === "contact" && (
               <div className="ap-section active">
-                <input value={contact.email} onChange={(e) => setData({ ...data, contact: { ...contact, email: e.target.value } })} />
-                <input value={contact.linkedin} onChange={(e) => setData({ ...data, contact: { ...contact, linkedin: e.target.value } })} />
-                <input value={contact.instagram} onChange={(e) => setData({ ...data, contact: { ...contact, instagram: e.target.value } })} />
-                <input value={contact.twitter} onChange={(e) => setData({ ...data, contact: { ...contact, twitter: e.target.value } })} />
-                <button type="button" className="ap-btn" onClick={() => saveData(data)}>
+                <input placeholder="Business email (required)" value={contact.email} onChange={(e) => setData({ ...data, contact: { ...contact, email: e.target.value } })} />
+                <input placeholder="LinkedIn URL (optional)" value={contact.linkedin} onChange={(e) => setData({ ...data, contact: { ...contact, linkedin: e.target.value } })} />
+                <input placeholder="Instagram URL (optional)" value={contact.instagram} onChange={(e) => setData({ ...data, contact: { ...contact, instagram: e.target.value } })} />
+                <input placeholder="Twitter/X URL (optional)" value={contact.twitter} onChange={(e) => setData({ ...data, contact: { ...contact, twitter: e.target.value } })} />
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    const err = validateContactData();
+                    if (err) return showToast(err);
+                    saveData(data);
+                  }}
+                >
                   Save Contact
                 </button>
                 <input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
