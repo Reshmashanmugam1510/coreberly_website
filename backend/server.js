@@ -6,29 +6,30 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 
 const app = express();
-const PORT = 4000;
-const JWT_SECRET = "replace-with-env-secret";
+const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 const dbPath = path.join(__dirname, "database.sqlite");
 const db = new sqlite3.Database(dbPath);
 
-const allowedOrigins = new Set([
+const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5174"
-]);
+  "https://coreberly-website.vercel.app"  // ✅ YOUR VERCEL LINK
+];
 
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
-        return;
+      } else {
+        callback(new Error("Not allowed by CORS"));
       }
-      callback(new Error("Not allowed by CORS"));
-    }
+    },
+    credentials: true
   })
 );
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -170,8 +171,6 @@ async function seedData() {
           name: "CHARANN .K.S",
           badge: "FOUNDER & CEO",
           title: "CEO",
-          skills: "Leadership, Software Architecture, Strategic Growth",
-          experience: "4+ Years",
           bio: "",
           photo: "",
           linkedin: ""
@@ -180,8 +179,6 @@ async function seedData() {
           name: "KANI. G.S",
           badge: "CO-FOUNDER & CTO",
           title: "CTO",
-          skills: "IoT Systems, Full-stack Dev, Tech Strategy",
-          experience: "3+ Years",
           bio: "",
           photo: "",
           linkedin: ""
@@ -190,8 +187,6 @@ async function seedData() {
           name: "ANISH VISWANATHAN.V.R",
           badge: "COO",
           title: "COO",
-          skills: "Data Engineering, Operations, Strategy",
-          experience: "3+ Years",
           bio: "",
           photo: "",
           linkedin: ""
@@ -200,8 +195,6 @@ async function seedData() {
           name: "KISHORE.V",
           badge: "LEAD DEVELOPER",
           title: "DEVELOPER",
-          skills: "React.js, Animation, UI Performance",
-          experience: "3+ Years",
           bio: "",
           photo: "",
           linkedin: ""
@@ -219,69 +212,6 @@ async function seedData() {
         { url: "", caption: "Client Demo Day" },
         { url: "", caption: "Tech Hackathon 2024" },
         { url: "", caption: "Office Culture" }
-      ],
-      life: {
-        title: "Inside Our World",
-        description: "A glimpse into our culture, innovation, and collaboration where ideas turn into impactful digital products.",
-        highlight1: "Fast-paced Learning Environment",
-        highlight2: "Collaborative Team Culture",
-        highlight3: "Innovation & Creativity",
-        stat1Value: "50+",
-        stat1Label: "Projects Completed",
-        stat2Value: "30+",
-        stat2Label: "Interns Trained",
-        stat3Value: "10+",
-        stat3Label: "Technologies Used",
-        image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80"
-      },
-      process: [
-        {
-          phase: "01",
-          icon: "🔍",
-          title: "Discovery & Strategy",
-          body: "We deep-dive into your business objectives, technical requirements, and user needs to craft a bulletproof roadmap."
-        },
-        {
-          phase: "02",
-          icon: "🎨",
-          title: "Design & Prototype",
-          body: "Interactive wireframes and high-fidelity designs aligned with your brand identity. You see and approve the product experience before development begins — ensuring zero surprises at launch."
-        },
-        {
-          phase: "03",
-          icon: "⚙️",
-          title: "Agile Development",
-          body: "Iterative sprints with regular demos, daily standups, and full transparency via your preferred project management tools. You're never left wondering — you're always in the loop."
-        },
-        {
-          phase: "04",
-          icon: "🚀",
-          title: "Launch & Grow",
-          body: "Rigorous QA, smooth deployment, and ongoing post-launch support. We don't disappear after go-live — we stay as your long-term technology partner."
-        }
-      ],
-      internship: [
-        {
-          title: "Full-Stack Web Development",
-          description: "Work on React, Node.js, and modern web applications. Learn best practices in frontend and backend development.",
-          duration: "3-6 months",
-          mode: "In-office & Remote",
-          support: "Mentorship"
-        },
-        {
-          title: "Mobile App Development",
-          description: "Develop iOS/Android applications with experienced mobile engineers. Build real apps used by thousands.",
-          duration: "3-6 months",
-          mode: "In-office & Remote",
-          support: "Mentorship"
-        },
-        {
-          title: "UI/UX Design",
-          description: "Design beautiful, user-centric interfaces. Work with Figma, user research, and design systems.",
-          duration: "3-6 months",
-          mode: "In-office & Remote",
-          support: "Mentorship"
-        }
       ],
       hero: {
         tagline:
@@ -554,6 +484,6 @@ function groupOrders(rows) {
 
 seedData().then(() => {
   app.listen(PORT, () => {
-    console.log(`Backend running on http://localhost:${PORT}`);
+    console.log(`Backend running on port ${PORT}`);
   });
 });
