@@ -1071,9 +1071,14 @@ export default function App() {
                 <div className="contact-item">
                   <div className="contact-icon">📧</div>
                   <div>
-                    <div className="contact-label">EMAIL</div>
-                    <a href={`mailto:${contact.email}`} className="contact-value">{contact.email}</a>
-                  </div>
+  <div className="contact-label">EMAIL</div>
+  <a
+    href={`mailto:${contact.email || "coreberly@gmail.com"}`}
+    className="contact-value"
+  >
+    {contact.email || "coreberly@gmail.com"}
+  </a>
+</div>
                 </div>
 
                 <div className="contact-item">
@@ -1087,10 +1092,9 @@ export default function App() {
                 <div className="contact-socials">
                   <h3>Connect With Us</h3>
                   <div className="social-links">
-                    <SocialLink href={`mailto:${contact.email}`} label="Email" type="email" />
-                    <SocialLink href={contact.linkedin} label="LinkedIn" type="linkedin" />
-                    <SocialLink href={contact.instagram} label="Instagram" type="instagram" />
-                    <SocialLink href={contact.twitter} label="Twitter / X" type="twitter" />
+                    <SocialLink href={`mailto:coreberly@gmail.com`} label="Email" type="email" />
+                    <SocialLink href="https://www.instagram.com/coreberly_official?igsh=YWN4ZGR4NDB4bndi" label="LinkedIn" type="linkedin" />
+                    <SocialLink href="https://www.instagram.com/coreberly_official?igsh=YWN4ZGR4NDB4bndi" label="Instagram" type="instagram" />
                   </div>
                 </div>
               </div>

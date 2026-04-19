@@ -9,7 +9,9 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
 const dbPath = path.join(__dirname, "database.sqlite");
-const db = new sqlite3.Database(dbPath);
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) console.error("DB Error:", err);
+});
 
 const allowedOrigins = [
   "http://localhost:5173",
