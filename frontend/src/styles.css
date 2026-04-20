@@ -100,6 +100,40 @@ nav {
   background: var(--brand-md) !important;
 }
 
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(13, 61, 53, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-toggle.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
 /* HERO */
 .hero {
   min-height: 100vh;
@@ -2472,7 +2506,7 @@ section {
   color: var(--brand);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   h1 {
     font-size: clamp(2.2rem, 8.2vw, 3.2rem);
     letter-spacing: -0.9px;
@@ -2482,18 +2516,79 @@ section {
     font-size: clamp(2rem, 6.2vw, 2.7rem);
   }
 
+  nav {
+    padding: 0 4vw;
+  }
+
+  .company-logo {
+    width: 150px;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: rgba(247, 250, 249, 0.98);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.85rem 4vw 1.2rem;
+    transform: translateY(-115%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    max-height: calc(100svh - 70px);
+    overflow-y: auto;
+  }
+
+  .nav-links.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a,
+  .nav-links .nav-cta {
+    width: 100%;
+    display: block;
+    text-align: left;
+    padding: 0.78rem 0;
+  }
+
+  .hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 108px 5vw 64px;
+    align-items: start;
+  }
+
+  .hero-copy {
+    order: 2;
+  }
+
   .hero-tagline,
   .sec-sub {
     font-size: 1rem;
   }
 
-  .hero {
-    grid-template-columns: 1fr;
-    gap: 3rem;
+  .hero-visual {
+    order: 1;
   }
 
-  .hero-visual {
-    order: -1;
+  .hero-card {
+    max-width: 100%;
   }
 
   .why-grid {
@@ -2547,6 +2642,11 @@ section {
     align-items: flex-start;
   }
 
+  .team-grid,
+  .partners-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .process-row {
     grid-template-columns: 1fr;
   }
@@ -2564,7 +2664,7 @@ section {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
   h1 {
     font-size: 2.05rem;
     letter-spacing: -0.6px;
@@ -2574,8 +2674,57 @@ section {
     font-size: 1.95rem;
   }
 
-  .nav-links {
-    display: none;
+  section {
+    padding: 4.2rem 5vw;
+  }
+
+  .hero {
+    padding: 96px 5vw 48px;
+  }
+
+  .hero-badge {
+    margin-bottom: 1.1rem;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pill-1,
+  .pill-2 {
+    position: static;
+    display: inline-flex;
+    margin-top: 0.8rem;
+  }
+
+  .team-grid,
+  .partners-grid,
+  .gallery-grid,
+  .bento,
+  .internship-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partners-grid {
+    gap: 1px;
+  }
+
+  .partner-card {
+    padding: 1.25rem;
+  }
+
+  .life-stats {
+    grid-template-columns: 1fr;
   }
 
   .footer-grid {
@@ -2587,12 +2736,14 @@ section {
     text-align: center;
   }
 
-  .gallery-grid {
-    grid-template-columns: 1fr;
+  .industry-marquee {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .life-stats {
-    grid-template-columns: 1fr;
+  .industry-track {
+    animation: none;
+    padding-bottom: 0.25rem;
   }
 
   .life-stat:not(:last-child) {
@@ -2628,6 +2779,26 @@ section {
   .bento-card.tall,
   .bento-card.span2 {
     grid-column: span 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .company-logo {
+    width: 138px;
+  }
+
+  .hero-card {
+    padding: 1.4rem;
+    border-radius: 18px;
+  }
+
+  .internship-card {
+    padding: 1.4rem;
+  }
+
+  .life-image-wrap,
+  .life-image-placeholder {
+    min-height: 240px;
   }
 }
 

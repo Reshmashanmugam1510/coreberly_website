@@ -328,8 +328,7 @@ export default function App() {
   const [editingInternship, setEditingInternship] = useState(null);
   const [editedInternship, setEditedInternship] = useState({ title: "", description: "", duration: "", mode: "", support: "" });
   const [newInternship, setNewInternship] = useState({ title: "", description: "", duration: "", mode: "", support: "" });
-  const [internshipStartIndex, setInternshipStartIndex] = useState(0);
-  const [internshipVisibleCount, setInternshipVisibleCount] = useState(3);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
@@ -370,38 +369,21 @@ export default function App() {
 
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth < 768) {
-        setInternshipVisibleCount(1);
-      } else if (window.innerWidth < 1200) {
-        setInternshipVisibleCount(2);
-      } else {
-        setInternshipVisibleCount(3);
+      if (window.innerWidth > 1024) {
+        setIsMobileMenuOpen(false);
       }
     };
 
-    onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
   useEffect(() => {
-    const maxStart = Math.max(0, internshipBlocks.length - internshipVisibleCount);
-    setInternshipStartIndex((prev) => Math.min(prev, maxStart));
-  }, [internshipBlocks.length, internshipVisibleCount]);
-
-  const canSlideInternship = internshipBlocks.length > internshipVisibleCount;
-  const maxInternshipStart = Math.max(0, internshipBlocks.length - internshipVisibleCount);
-  const visibleInternshipBlocks = canSlideInternship
-    ? internshipBlocks.slice(internshipStartIndex, internshipStartIndex + internshipVisibleCount)
-    : internshipBlocks;
-
-  const goPrevInternship = () => {
-    setInternshipStartIndex((prev) => Math.max(0, prev - 1));
-  };
-
-  const goNextInternship = () => {
-    setInternshipStartIndex((prev) => Math.min(maxInternshipStart, prev + 1));
-  };
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     api
@@ -421,7 +403,7 @@ export default function App() {
     );
     document.querySelectorAll(".fade-up").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [data, loading, internshipStartIndex, internshipVisibleCount]);
+  }, [data, loading]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -525,30 +507,54 @@ export default function App() {
   return (
     <>
       <nav>
-        <a href="#" className="nav-brand" aria-label="Coreberly home">
+        <a
+          href="#"
+          className="nav-brand"
+          aria-label="Coreberly home"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
           <Logo />
         </a>
-        <ul className="nav-links">
+        <button
+          type="button"
+          className={`nav-toggle ${isMobileMenuOpen ? "active" : ""}`}
+          aria-label="Toggle navigation"
+          aria-controls="primary-navigation"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <ul id="primary-navigation" className={`nav-links ${isMobileMenuOpen ? "open" : ""}`}>
           <li>
-            <a href="#services">Services</a>
+            <a href="#services" onClick={() => setIsMobileMenuOpen(false)}>Services</a>
           </li>
           <li>
-            <a href="#why">Why Coreberly</a>
+            <a href="#why" onClick={() => setIsMobileMenuOpen(false)}>Why Coreberly</a>
           </li>
           <li>
-            <a href="#process">How We Work</a>
+            <a href="#process" onClick={() => setIsMobileMenuOpen(false)}>How We Work</a>
           </li>
           <li>
-            <a href="#partners">Collaborations</a>
+            <a href="#partners" onClick={() => setIsMobileMenuOpen(false)}>Collaborations</a>
           </li>
           <li>
-            <a href="#team">Team</a>
+            <a href="#team" onClick={() => setIsMobileMenuOpen(false)}>Team</a>
           </li>
           <li>
-            <a href="#internship">Internship</a>
+            <a href="#internship" onClick={() => setIsMobileMenuOpen(false)}>Internship</a>
           </li>
           <li>
-            <button type="button" className="nav-cta" onClick={() => setContactModalOpen(true)}>
+            <button
+              type="button"
+              className="nav-cta"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setContactModalOpen(true);
+              }}
+            >
               Get Started
             </button>
           </li>
@@ -865,35 +871,10 @@ export default function App() {
         <p className="sec-sub light">
           Join our team and gain real-world experience building cutting-edge digital products alongside industry experts.
         </p>
-        {canSlideInternship ? (
-          <div className="internship-nav" aria-label="Internship cards navigation">
-            <button
-              type="button"
-              className="internship-nav-btn"
-              onClick={goPrevInternship}
-              disabled={internshipStartIndex === 0}
-              aria-label="Show previous internship blocks"
-            >
-              <span aria-hidden="true">&#8249;</span>
-            </button>
-            <div className="internship-nav-meta">
-              {internshipStartIndex + 1}-{Math.min(internshipStartIndex + internshipVisibleCount, internshipBlocks.length)} of {internshipBlocks.length}
-            </div>
-            <button
-              type="button"
-              className="internship-nav-btn"
-              onClick={goNextInternship}
-              disabled={internshipStartIndex >= maxInternshipStart}
-              aria-label="Show next internship blocks"
-            >
-              <span aria-hidden="true">&#8250;</span>
-            </button>
-          </div>
-        ) : null}
         <div className="internship-grid">
-          {visibleInternshipBlocks.map((item, i) => (
+          {internshipBlocks.map((item, i) => (
             <div className="internship-card fade-up" key={`${item.title}-${i}`}>
-              <div className="internship-number">{String(internshipStartIndex + i + 1).padStart(2, "0")}</div>
+              <div className="internship-number">{String(i + 1).padStart(2, "0")}</div>
               <h4>{item.title}</h4>
               <p>{item.description}</p>
               <div className="internship-perks">
