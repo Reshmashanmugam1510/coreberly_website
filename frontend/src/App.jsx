@@ -21,6 +21,7 @@ const defaultData = {
   team: [],
   partners: [],
   gallery: [],
+  reviews: [],
   life: DEFAULT_LIFE_CONTENT,
   process: [],
   internship: [],
@@ -199,6 +200,10 @@ function teamExperience(m) {
   return m.experience || m.experienceYears || m.years || "";
 }
 
+function teamQuote(m) {
+  return m.quote || "";
+}
+
 function EditIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -303,6 +308,7 @@ export default function App() {
     bio: "",
     skills: "",
     experience: "",
+    quote: "",
     photo: "",
     linkedin: ""
   });
@@ -314,6 +320,7 @@ export default function App() {
     bio: "",
     skills: "",
     experience: "",
+    quote: "",
     photo: "",
     linkedin: ""
   });
@@ -342,9 +349,49 @@ export default function App() {
     projectType: "",
     message: ""
   });
+  const [flippedCards, setFlippedCards] = useState({});
+  const [activeReview, setActiveReview] = useState(0);
+  const [reviewTouchStartX, setReviewTouchStartX] = useState(null);
+  const [newReview, setNewReview] = useState({ quote: "", name: "", role: "", rating: "5" });
+  const [editingReview, setEditingReview] = useState(null);
+  const [editedReview, setEditedReview] = useState({ quote: "", name: "", role: "", rating: "5" });
+
+  const toggleFlip = (index) => {
+    setFlippedCards((prev) => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   const hero = useMemo(() => data.hero || defaultData.hero, [data.hero]);
   const contact = useMemo(() => data.contact || defaultData.contact, [data.contact]);
+  const reviews = useMemo(() => {
+    const fromData = Array.isArray(data.reviews)
+      ? data.reviews
+          .filter((item) => item && (item.quote || item.name || item.role))
+          .map((item) => ({
+            quote: item.quote || "",
+            name: item.name || "",
+            role: item.role || "",
+            rating: Math.min(5, Math.max(1, Number(item.rating) || 5))
+          }))
+      : [];
+
+    if (fromData.length > 0) return fromData;
+
+    if (hero.tquote || hero.tname || hero.trole) {
+      return [
+        {
+          quote: hero.tquote || "",
+          name: hero.tname || "",
+          role: hero.trole || "",
+          rating: 5
+        }
+      ];
+    }
+
+    return [];
+  }, [data.reviews, hero.tname, hero.tquote, hero.trole]);
   const life = useMemo(() => ({ ...DEFAULT_LIFE_CONTENT, ...(data.life || {}) }), [data.life]);
   const lifeHighlights = useMemo(
     () => [life.highlight1, life.highlight2, life.highlight3].filter(Boolean),
@@ -367,6 +414,40 @@ export default function App() {
     () => (Array.isArray(data.process) && data.process.length > 0 ? data.process : PROCESS_STEPS),
     [data.process]
   );
+
+  const changeReview = (next) => {
+    if (!reviews.length) return;
+    setActiveReview((next + reviews.length) % reviews.length);
+  };
+
+  const nextReview = () => {
+    if (reviews.length <= 1) return;
+    setActiveReview((prev) => (prev + 1) % reviews.length);
+  };
+
+  const prevReview = () => {
+    if (reviews.length <= 1) return;
+    setActiveReview((prev) => (prev - 1 + reviews.length) % reviews.length);
+  };
+
+  const onReviewTouchStart = (e) => {
+    setReviewTouchStartX(e.changedTouches[0]?.clientX ?? null);
+  };
+
+  const onReviewTouchEnd = (e) => {
+    if (reviewTouchStartX === null || reviews.length <= 1) return;
+    const endX = e.changedTouches[0]?.clientX ?? reviewTouchStartX;
+    const deltaX = endX - reviewTouchStartX;
+    const swipeThreshold = 40;
+
+    if (deltaX > swipeThreshold) {
+      prevReview();
+    } else if (deltaX < -swipeThreshold) {
+      nextReview();
+    }
+
+    setReviewTouchStartX(null);
+  };
 
   const scrollInternship = (direction) => {
     const track = internshipTrackRef.current;
@@ -397,6 +478,27 @@ export default function App() {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
+    if (reviews.length <= 1) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      setActiveReview((prev) => (prev + 1) % reviews.length);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [reviews.length]);
+
+  useEffect(() => {
+    if (!reviews.length) {
+      setActiveReview(0);
+      return;
+    }
+
+    if (activeReview >= reviews.length) {
+      setActiveReview(0);
+    }
+  }, [activeReview, reviews.length]);
+
+  useEffect(() => {
     api
       .getSiteData()
       .then((d) => setData({ ...defaultData, ...d }))
@@ -407,7 +509,11 @@ export default function App() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) e.target.classList.add("visible");
+          if (!e.isIntersecting) return;
+          // Keep reveal styles stable across React re-renders.
+          e.target.style.opacity = "1";
+          e.target.style.transform = "translateY(0)";
+          observer.unobserve(e.target);
         });
       },
       { threshold: 0.12 }
@@ -674,16 +780,44 @@ export default function App() {
               </div>
             ))}
           </div>
-          <div className="why-card fade-up">
-            <div className="stars">★ ★ ★ ★ ★</div>
-            <p className="t-quote">{hero.tquote}</p>
-            <div className="t-author">
-              <div className="avatar">{initials(hero.tname)}</div>
-              <div>
-                <div className="author-name">{hero.tname}</div>
-                <div className="author-role">{hero.trole}</div>
+          <div className="why-review-wrap fade-up">
+            <div
+              className="why-review-carousel"
+              onTouchStart={onReviewTouchStart}
+              onTouchEnd={onReviewTouchEnd}
+            >
+              <div className="why-review-track" style={{ transform: `translateX(-${activeReview * 100}%)` }}>
+                {(reviews.length > 0 ? reviews : [{ quote: "", name: "", role: "", rating: 5 }]).map((review, i) => (
+                  <div className="why-review-slide" key={`${review.name || "review"}-${i}`}>
+                    <div className="why-card">
+                      <div className="stars">{"★".repeat(review.rating || 5)}</div>
+                      <p className="t-quote">{review.quote || "Add your first review from admin panel."}</p>
+                      <div className="t-author">
+                        <div className="avatar">{initials(review.name)}</div>
+                        <div>
+                          <div className="author-name">{review.name || "Client Name"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {reviews.length > 1 ? (
+              <div className="why-review-dots" role="tablist" aria-label="Client reviews">
+                {reviews.map((_, i) => (
+                  <button
+                    key={`review-dot-${i}`}
+                    type="button"
+                    className={`why-review-dot ${i === activeReview ? "active" : ""}`}
+                    onClick={() => changeReview(i)}
+                    aria-label={`Go to review ${i + 1}`}
+                    aria-selected={i === activeReview}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -762,38 +896,67 @@ export default function App() {
         </p>
         <div className="team-grid">
            {(data.team || []).map((m, i) => (
-            <div className="team-card fade-up" key={`${m.name}-${i}`}>
-              <div className={`team-photo ${i < 2 ? "team-photo--top-focus" : ""}`}>
-                {m.photo ? (
-                  <img src={m.photo} alt={m.name} />
-                ) : (
-                  <div className="team-photo-placeholder">
-                    <div className="team-initials-big">{initials(m.name)}</div>
+            <div 
+              className={`team-card flip-card fade-up ${flippedCards[i] ? "flipped" : ""}`} 
+              key={`${m.name}-${i}`}
+              onClick={() => toggleFlip(i)}
+              role="button"
+              tabIndex={0}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  toggleFlip(i);
+                }
+              }}
+            >
+              <div className="flip-card-inner">
+                {/* Front side */}
+                <div className="flip-card-front">
+                  <div className={`team-photo ${i < 2 ? "team-photo--top-focus" : ""}`}>
+                    {m.photo ? (
+                      <img src={m.photo} alt={m.name} />
+                    ) : (
+                      <div className="team-photo-placeholder">
+                        <div className="team-initials-big">{initials(m.name)}</div>
+                      </div>
+                    )}
+                    {teamBadge(m) ? <div className="team-role-badge">{teamBadge(m)}</div> : null}
                   </div>
-                )}
-                {teamBadge(m) ? <div className="team-role-badge">{teamBadge(m)}</div> : null}
-              </div>
-              <div className="team-info">
-                <div className="team-name">{m.name}</div>
-                {teamTitle(m) ? <div className="team-title-line">{teamTitle(m)}</div> : null}
-                {m.bio ? <div className="team-bio">{m.bio}</div> : null}
-                {teamSkills(m).length > 0 ? (
-                  <div className="team-skill-list">
-                    {teamSkills(m).map((skill) => (
-                      <span className="team-skill-chip" key={`${m.name}-${skill}`}>
-                        {skill}
-                      </span>
-                    ))}
+                  <div className="team-info">
+                    <div className="team-name">{m.name}</div>
+                    {teamTitle(m) ? <div className="team-title-line">{teamTitle(m)}</div> : null}
+                    {m.bio ? <div className="team-bio">{m.bio}</div> : null}
                   </div>
-                ) : null}
-                {teamExperience(m) ? <div className="team-experience">EXP: {teamExperience(m)}</div> : null}
-                {m.linkedin ? (
-                  <div className="team-footer">
-                    <a href={m.linkedin} target="_blank" rel="noreferrer" className="team-social-link">
-                      in
-                    </a>
+                </div>
+                {/* Back side */}
+                <div className="flip-card-back">
+                  <div className="flip-card-back-content">
+                    {teamSkills(m).length > 0 ? (
+                      <div className="flip-back-section">
+                        <div className="flip-back-label">⚡ Skills</div>
+                        <div className="flip-back-skill-list">
+                          {teamSkills(m).map((skill) => (
+                            <span className="flip-back-skill-chip" key={`${m.name}-${skill}`}>
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {teamExperience(m) || teamQuote(m) ? (
+                      <div className="flip-back-section">
+                        <div className="flip-back-label">⏱ Experience</div>
+                        {teamExperience(m) ? <div className="flip-back-exp">{teamExperience(m)}</div> : null}
+                        {teamQuote(m) ? <div className="flip-back-quote">"{teamQuote(m)}"</div> : null}
+                      </div>
+                    ) : null}
+                    {!teamSkills(m).length && !teamExperience(m) && !teamQuote(m) ? (
+                      <div className="flip-back-section">
+                        <div className="flip-back-bio">Click to learn more</div>
+                      </div>
+                    ) : null}
+                    
                   </div>
-                ) : null}
+                </div>
               </div>
             </div>
           ))}
@@ -999,8 +1162,8 @@ export default function App() {
                 <a href={`mailto:${contact.email}`}>{contact.email}</a>
               </li>
               <li>
-                <a href="https://coreberly.in" target="_blank" rel="noreferrer">
-                  coreberly.in
+                <a href="https://coreberly@gmail.com" target="_blank" rel="noreferrer">
+                  coreberly@gmail.com
                 </a>
               </li>
               <li>
@@ -1188,7 +1351,7 @@ export default function App() {
           </div>
           <div className="ap-body">
             <div className="ap-tabs">
-              {["team", "partners", "gallery", "life", "process", "internship", "hero", "contact"].map((t) => (
+              {["team", "partners", "gallery", "life", "process", "internship", "reviews", "hero", "contact"].map((t) => (
                 <button key={t} type="button" className={`ap-tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
                   {t}
                 </button>
@@ -1230,6 +1393,11 @@ export default function App() {
                           placeholder="Experience (e.g. 4+ Years)"
                           value={editedMember.experience || ""}
                           onChange={(e) => setEditedMember({ ...editedMember, experience: e.target.value })}
+                        />
+                        <textarea
+                          placeholder="Quote under experience (optional)"
+                          value={editedMember.quote || ""}
+                          onChange={(e) => setEditedMember({ ...editedMember, quote: e.target.value })}
                         />
                         <div className="upload-box">
                           <label className="upload-label">
@@ -1328,6 +1496,11 @@ export default function App() {
                   value={newMember.experience}
                   onChange={(e) => setNewMember({ ...newMember, experience: e.target.value })}
                 />
+                <textarea
+                  placeholder="Quote under experience (optional)"
+                  value={newMember.quote}
+                  onChange={(e) => setNewMember({ ...newMember, quote: e.target.value })}
+                />
                 <div className="upload-box">
                   <label className="upload-label">
                     Employee Photo (PNG/JPEG)
@@ -1357,7 +1530,7 @@ export default function App() {
                   onClick={() => {
                     if (!newMember.name || !newMember.badge || !newMember.title) return showToast("Name, badge and title are required");
                      saveData({ ...data, team: [...(data.team || []), { ...newMember }] });
-                    setNewMember({ name: "", badge: "", title: "", bio: "", skills: "", experience: "", photo: "", linkedin: "" });
+                    setNewMember({ name: "", badge: "", title: "", bio: "", skills: "", experience: "", quote: "", photo: "", linkedin: "" });
                   }}
                 >
                   Add Member
@@ -1906,6 +2079,129 @@ export default function App() {
                   }}
                 >
                   Add Internship Block
+                </button>
+              </div>
+            )}
+
+            {tab === "reviews" && (
+              <div className="ap-section active">
+                {(data.reviews || []).map((r, i) => (
+                  <div key={`${r.name || "review"}-${i}`}>
+                    {editingReview === i ? (
+                      <div className="ap-edit-form">
+                        <textarea
+                          placeholder="Review quote (required)"
+                          value={editedReview.quote}
+                          onChange={(e) => setEditedReview({ ...editedReview, quote: e.target.value })}
+                        />
+                        <input
+                          placeholder="Reviewer name (required)"
+                          value={editedReview.name}
+                          onChange={(e) => setEditedReview({ ...editedReview, name: e.target.value })}
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          max="5"
+                          placeholder="Rating (1-5)"
+                          value={editedReview.rating}
+                          onChange={(e) => setEditedReview({ ...editedReview, rating: e.target.value })}
+                        />
+                        <div className="ap-form-buttons">
+                          <button
+                            type="button"
+                            className="ap-btn"
+                            onClick={() => {
+                              if (!editedReview.quote || !editedReview.name) {
+                                return showToast("Quote and name are required");
+                              }
+                              const nextReviews = [...(data.reviews || [])];
+                              nextReviews[i] = {
+                                ...editedReview,
+                                rating: String(Math.min(5, Math.max(1, Number(editedReview.rating) || 5)))
+                              };
+                              saveData({ ...data, reviews: nextReviews });
+                              setEditingReview(null);
+                            }}
+                          >
+                            Save
+                          </button>
+                          <button type="button" className="ap-btn ap-cancel-btn" onClick={() => setEditingReview(null)}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="ap-member-item">
+                        <span>{r.name || `Review ${i + 1}`}</span>
+                        <div className="ap-actions">
+                          <button
+                            type="button"
+                            className="ap-edit-btn"
+                            onClick={() => {
+                              setEditedReview({
+                                quote: r.quote || "",
+                                name: r.name || "",
+                                rating: String(r.rating || 5)
+                              });
+                              setEditingReview(i);
+                            }}
+                            title="Edit review"
+                            aria-label="Edit review"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-del-btn"
+                            onClick={() => saveData({ ...data, reviews: (data.reviews || []).filter((_, idx) => idx !== i) })}
+                            title="Delete review"
+                            aria-label="Delete review"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <textarea
+                  placeholder="Review quote (required)"
+                  value={newReview.quote}
+                  onChange={(e) => setNewReview({ ...newReview, quote: e.target.value })}
+                />
+                <input
+                  placeholder="Reviewer name (required)"
+                  value={newReview.name}
+                  onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  max="5"
+                  placeholder="Rating (1-5)"
+                  value={newReview.rating}
+                  onChange={(e) => setNewReview({ ...newReview, rating: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => {
+                    if (!newReview.quote || !newReview.name) {
+                      return showToast("Quote and name are required");
+                    }
+
+                    const next = {
+                      ...newReview,
+                      rating: String(Math.min(5, Math.max(1, Number(newReview.rating) || 5)))
+                    };
+
+                    saveData({ ...data, reviews: [...(data.reviews || []), next] });
+                    setNewReview({ quote: "", name: "", role: "", rating: "5" });
+                  }}
+                >
+                  Add Review
                 </button>
               </div>
             )}

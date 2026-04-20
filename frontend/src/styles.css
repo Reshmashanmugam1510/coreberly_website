@@ -701,6 +701,125 @@ section {
   box-shadow: 0 20px 48px rgba(13, 61, 53, 0.12);
 }
 
+/* Flip Card Styles - SIMPLE & WORKING */
+.flip-card {
+  perspective: 1000px;
+  width: 100%;
+  height: 420px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* FRONT */
+.flip-card-front {
+  background: var(--paper);
+  overflow: hidden;
+}
+
+/* BACK */
+.flip-card-back {
+  background: var(--brand);
+  color: white;
+  transform: rotateY(180deg);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.flip-card-back-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.flip-back-section {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 0.78rem 0.85rem;
+}
+
+.flip-back-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.75px;
+  text-transform: uppercase;
+  color: #d6fff6;
+  margin-bottom: 0.5rem;
+}
+
+.flip-back-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.flip-back-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #effffb;
+  background: rgba(8, 31, 27, 0.45);
+  border: 1px solid rgba(214, 255, 246, 0.28);
+  border-radius: 999px;
+  padding: 0.3rem 0.62rem;
+  line-height: 1.2;
+}
+
+.flip-back-exp {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #f5fffc;
+}
+
+.flip-back-quote {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.flip-back-bio {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.flip-back-hint {
+  margin-top: 0.1rem;
+  text-align: center;
+  font-size: 0.66rem;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  color: rgba(214, 255, 246, 0.78);
+}
+
 .team-photo {
   width: 100%;
   height: 220px;
@@ -710,6 +829,7 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .team-photo img {
@@ -1175,6 +1295,51 @@ section {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   padding: 2.5rem;
+  min-height: 180px;
+}
+
+.why-review-wrap {
+  width: 100%;
+}
+
+.why-review-carousel {
+  overflow: hidden;
+  border-radius: 20px;
+  touch-action: pan-y;
+}
+
+.why-review-track {
+  display: flex;
+  transition: transform 0.35s ease;
+  will-change: transform;
+}
+
+.why-review-slide {
+  flex: 0 0 100%;
+}
+
+.why-review-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.95rem;
+}
+
+.why-review-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.why-review-dot.active {
+  width: 22px;
+  background: #fff;
 }
 
 .stars {
@@ -2623,6 +2788,11 @@ section {
     grid-template-columns: 1fr;
   }
 
+  .why-card {
+    min-height: 220px;
+    padding: 2rem;
+  }
+
   .footer-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -2673,6 +2843,21 @@ section {
   .team-grid,
   .partners-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* First 2 team cards smaller on tablet */
+  .team-card:nth-child(1),
+  .team-card:nth-child(2) {
+    grid-column: span 1;
+  }
+
+  .flip-card {
+    height: 440px;
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    height: 440px;
   }
 
   .process-row {
@@ -2740,6 +2925,77 @@ section {
   .gallery-grid,
   .bento {
     grid-template-columns: 1fr;
+  }
+
+  .why-card {
+    min-height: 110px;
+    padding: 1.35rem;
+  }
+
+  .team-photo {
+    height: 240px;
+  }
+
+  .team-photo img,
+  .team-photo--top-focus img {
+    object-position: center center;
+  }
+
+  .flip-card {
+    height: auto;
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    position: static;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .flip-card-front {
+    display: block;
+  }
+
+  .flip-card-back {
+    display: none;
+    transform: none;
+    overflow: visible;
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .flip-card.flipped .flip-card-front {
+    display: none;
+  }
+
+  .flip-card.flipped .flip-card-back {
+    display: block;
+  }
+
+  .flip-card-inner {
+    height: auto;
+    transform: none !important;
+  }
+
+  .flip-card-back {
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .flip-back-name {
+    font-size: 1.05rem;
+  }
+
+  .flip-back-label {
+    font-size: 0.75rem;
+  }
+
+  .flip-back-bio,
+  .flip-back-exp,
+  .flip-back-quote {
+    font-size: 0.74rem;
+  }
+
+  .flip-back-skill-chip {
+    font-size: 0.65rem;
   }
 
   .internship-track {
@@ -2840,6 +3096,53 @@ section {
   .life-image-wrap,
   .life-image-placeholder {
     min-height: 240px;
+  }
+
+  /* Extra small screens: team cards */
+  .team-photo {
+    height: 220px;
+  }
+
+  .flip-card {
+    height: auto;
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    height: auto;
+  }
+
+  .flip-card-back {
+    padding: 1.3rem;
+    height: auto;
+  }
+
+  .flip-back-name {
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .flip-back-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.4px;
+    margin-bottom: 0.15rem;
+  }
+
+  .flip-back-bio,
+  .flip-back-exp,
+  .flip-back-quote {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .flip-back-skill-chip {
+    font-size: 0.62rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .flip-back-skill-list {
+    gap: 0.3rem;
   }
 }
 
