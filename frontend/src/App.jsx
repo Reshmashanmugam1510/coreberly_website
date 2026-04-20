@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 
 const DEFAULT_LIFE_CONTENT = {
@@ -362,10 +362,21 @@ export default function App() {
     () => (Array.isArray(data.internship) && data.internship.length > 0 ? data.internship : DEFAULT_INTERNSHIP_BLOCKS),
     [data.internship]
   );
+  const internshipTrackRef = useRef(null);
   const processSteps = useMemo(
     () => (Array.isArray(data.process) && data.process.length > 0 ? data.process : PROCESS_STEPS),
     [data.process]
   );
+
+  const scrollInternship = (direction) => {
+    const track = internshipTrackRef.current;
+    if (!track) return;
+
+    track.scrollBy({
+      left: direction === "left" ? -track.clientWidth : track.clientWidth,
+      behavior: "smooth"
+    });
+  };
 
   useEffect(() => {
     const onResize = () => {
@@ -871,19 +882,46 @@ export default function App() {
         <p className="sec-sub light">
           Join our team and gain real-world experience building cutting-edge digital products alongside industry experts.
         </p>
-        <div className="internship-grid">
-          {internshipBlocks.map((item, i) => (
-            <div className="internship-card fade-up" key={`${item.title}-${i}`}>
-              <div className="internship-number">{String(i + 1).padStart(2, "0")}</div>
-              <h4>{item.title}</h4>
-              <p>{item.description}</p>
-              <div className="internship-perks">
-                <span className="perk">🎯 {item.duration}</span>
-                <span className="perk">🏙️ {item.mode}</span>
-                <span className="perk">💡 {item.support}</span>
+        <div className="internship-nav">
+          <button
+            type="button"
+            className="internship-nav-btn"
+            onClick={() => scrollInternship("left")}
+            aria-label="Scroll internship cards left"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="internship-nav-btn internship-nav-more"
+            onClick={() => scrollInternship("right")}
+          >
+            More
+          </button>
+          <button
+            type="button"
+            className="internship-nav-btn"
+            onClick={() => scrollInternship("right")}
+            aria-label="Scroll internship cards right"
+          >
+            ›
+          </button>
+        </div>
+        <div className="internship-carousel">
+          <div className="internship-track" ref={internshipTrackRef}>
+            {internshipBlocks.map((item, i) => (
+              <div className="internship-card fade-up" key={`${item.title}-${i}`}>
+                <div className="internship-number">{String(i + 1).padStart(2, "0")}</div>
+                <h4>{item.title}</h4>
+                <p>{item.description}</p>
+                <div className="internship-perks">
+                  <span className="perk">🎯 {item.duration}</span>
+                  <span className="perk">🏙️ {item.mode}</span>
+                  <span className="perk">💡 {item.support}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         <div className="internship-cta">
           <p>Ready to kickstart your tech career?</p>

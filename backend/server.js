@@ -326,6 +326,10 @@ app.get("/api/site-data", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Coreberly Backend Running 🚀");
+});
+
 app.post("/api/admin/unlock", async (req, res) => {
   try {
     const { password } = req.body;
