@@ -17,11 +17,19 @@ const DEFAULT_LIFE_CONTENT = {
     "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=80"
 };
 
+const DEFAULT_LEGAL_CONTENT = {
+  privacyPolicy:
+    "We collect only the information needed to respond to inquiries, deliver services, and improve the website experience. We do not sell your data, and we store submissions securely with access limited to authorized team members only. You can request updates or deletion of your submitted data by contacting us at any time.",
+  termsAndConditions:
+    "By using this website, you agree to use it responsibly and not misuse any content, forms, or service information. All materials are provided for general informational purposes. Project timelines, deliverables, and estimates are confirmed separately through direct communication with our team."
+};
+
 const defaultData = {
   team: [],
   partners: [],
   gallery: [],
   reviews: [],
+  legal: DEFAULT_LEGAL_CONTENT,
   life: DEFAULT_LIFE_CONTENT,
   process: [],
   internship: [],
@@ -343,6 +351,8 @@ export default function App() {
   const [memberPhotoPreview, setMemberPhotoPreview] = useState("");
   const [galleryPhotoPreview, setGalleryPhotoPreview] = useState("");
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalModalType, setLegalModalType] = useState("privacy");
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -365,6 +375,7 @@ export default function App() {
 
   const hero = useMemo(() => data.hero || defaultData.hero, [data.hero]);
   const contact = useMemo(() => data.contact || defaultData.contact, [data.contact]);
+  const legal = useMemo(() => ({ ...DEFAULT_LEGAL_CONTENT, ...(data.legal || {}) }), [data.legal]);
   const reviews = useMemo(() => {
     const fromData = Array.isArray(data.reviews)
       ? data.reviews
@@ -414,6 +425,15 @@ export default function App() {
     () => (Array.isArray(data.process) && data.process.length > 0 ? data.process : PROCESS_STEPS),
     [data.process]
   );
+
+  const openLegalModal = (type) => {
+    setLegalModalType(type);
+    setLegalModalOpen(true);
+  };
+
+  const closeLegalModal = () => {
+    setLegalModalOpen(false);
+  };
 
   const changeReview = (next) => {
     if (!reviews.length) return;
@@ -1182,12 +1202,39 @@ export default function App() {
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Coreberly. All rights reserved.</span>
           <div className="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Sitemap</a>
+            <button type="button" className="footer-legal-link" onClick={() => openLegalModal("privacy")}>
+              Privacy Policy
+            </button>
+            <button type="button" className="footer-legal-link" onClick={() => openLegalModal("terms")}>
+              Terms &amp; Conditions
+            </button>
           </div>
         </div>
       </footer>
+
+      {legalModalOpen && (
+        <div className="legal-modal-overlay" onClick={closeLegalModal} role="presentation">
+          <div className="legal-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
+            <button type="button" className="modal-close legal-close" onClick={closeLegalModal} aria-label="Close legal details">
+              ✕
+            </button>
+            <div className="legal-modal-header">
+              <div className="sec-label">Legal</div>
+              <h2 id="legal-modal-title" className="sec-title">
+                {legalModalType === "privacy" ? "Privacy Policy" : "Terms & Conditions"}
+              </h2>
+            </div>
+            <div className="legal-modal-body">
+              {(legalModalType === "privacy" ? legal.privacyPolicy : legal.termsAndConditions)
+                .split(/\n\n+/)
+                .filter(Boolean)
+                .map((paragraph, index) => (
+                  <p key={`${legalModalType}-${index}`}>{paragraph}</p>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {contactModalOpen && (
         <div id="contact-modal" className="contact-modal-overlay">
@@ -1351,7 +1398,7 @@ export default function App() {
           </div>
           <div className="ap-body">
             <div className="ap-tabs">
-              {["team", "partners", "gallery", "life", "process", "internship", "reviews", "hero", "contact"].map((t) => (
+              {["team", "partners", "gallery", "life", "process", "internship", "reviews", "legal", "hero", "contact"].map((t) => (
                 <button key={t} type="button" className={`ap-tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
                   {t}
                 </button>
@@ -2202,6 +2249,40 @@ export default function App() {
                   }}
                 >
                   Add Review
+                </button>
+              </div>
+            )}
+
+            {tab === "legal" && (
+              <div className="ap-section active">
+                <div className="legal-editor-note">
+                  Edit the two footer legal documents below. Privacy Policy is shown from the Privacy link, and Terms & Conditions is shown from the Terms link.
+                </div>
+
+                <div className="legal-editor-block">
+                  <label className="ap-label">Privacy Policy</label>
+                  <textarea
+                    placeholder="Privacy Policy content"
+                    value={legal.privacyPolicy}
+                    onChange={(e) => setData({ ...data, legal: { ...legal, privacyPolicy: e.target.value } })}
+                  />
+                </div>
+
+                <div className="legal-editor-block">
+                  <label className="ap-label">Terms &amp; Conditions</label>
+                  <textarea
+                    placeholder="Terms & Conditions content"
+                    value={legal.termsAndConditions}
+                    onChange={(e) => setData({ ...data, legal: { ...legal, termsAndConditions: e.target.value } })}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="ap-btn"
+                  onClick={() => saveData(data)}
+                >
+                  Save Legal Content
                 </button>
               </div>
             )}
