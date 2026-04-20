@@ -2,6 +2,8 @@ const API_BASE =
   (import.meta.env.VITE_API_BASE_URL || "http://localhost:4000")
     .replace(/\/$/, "") + "/api";
 
+    console.log("API BASE:", API_BASE);
+
 async function request(path, options = {}) {
   const token = localStorage.getItem("token");
   const headers = {
