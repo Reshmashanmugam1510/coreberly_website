@@ -4,6 +4,8 @@ const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -16,13 +18,24 @@ const db = new sqlite3.Database(dbPath, (err) => {
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "https://coreberly-website.vercel.app"  // ✅ YOUR VERCEL LINK
+  "https://coreberly-website.vercel.app"
 ];
+
+const extraCorsOrigins = String(process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOrigins = new Set([...allowedOrigins, ...extraCorsOrigins]);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        corsOrigins.has(origin) ||
+        /^https:\/\/.*\.vercel\.app$/i.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -263,6 +276,33 @@ function adminOnly(req, res, next) {
   return next();
 }
 
+function createMailTransport() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = String(process.env.SMTP_SECURE || "false") === "true";
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const service = process.env.SMTP_SERVICE;
+
+  if (service && user && pass) {
+    return nodemailer.createTransport({
+      service,
+      auth: { user, pass }
+    });
+  }
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass }
+  });
+}
+
 app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, email, password, role, manufacturerName } = req.body;
@@ -323,6 +363,47 @@ app.get("/api/site-data", async (req, res) => {
     return res.json(JSON.parse(row.data_json));
   } catch {
     return res.status(500).json({ error: "Failed to load site data" });
+  }
+});
+
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, phone, projectType, message } = req.body || {};
+    if (!name || !email || !phone || !projectType || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const transport = createMailTransport();
+    if (!transport) {
+      return res.status(503).json({
+        error: "Mail service is not configured. Set SMTP_USER and SMTP_PASS with SMTP_SERVICE (or SMTP_HOST/SMTP_PORT)."
+      });
+    }
+
+    const fromAddress = process.env.MAIL_FROM || process.env.SMTP_USER || email;
+    const toAddress = process.env.CONTACT_TO || "coreberly@gmail.com";
+    const subject = `Coreberly enquiry from ${name}`;
+    const text = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Phone: ${phone}`,
+      `Consultation Type: ${projectType}`,
+      "",
+      "Message:",
+      message
+    ].join("\n");
+
+    const info = await transport.sendMail({
+      from: fromAddress,
+      to: toAddress,
+      replyTo: email,
+      subject,
+      text
+    });
+
+    return res.json({ success: true, messageId: info.messageId || null });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to send message" });
   }
 });
 

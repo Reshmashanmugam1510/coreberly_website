@@ -356,6 +356,7 @@ export default function App() {
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
+    phone: "",
     projectType: "",
     message: ""
   });
@@ -467,6 +468,18 @@ export default function App() {
     }
 
     setReviewTouchStartX(null);
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.sendContactMessage(contactForm);
+      showToast("Message sent successfully");
+      setContactForm({ name: "", email: "", phone: "", projectType: "", message: "" });
+      setContactModalOpen(false);
+    } catch (error) {
+      showToast(error.message || "Unable to send message");
+    }
   };
 
   const scrollInternship = (direction) => {
@@ -1244,12 +1257,7 @@ export default function App() {
             <div className="contact-modal-content">
               <div className="contact-form-section">
                 <h2>Send Us a Message</h2>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  showToast("Message sent! We'll be in touch soon.");
-                  setContactForm({ name: "", email: "", projectType: "", message: "" });
-                  setContactModalOpen(false);
-                }}>
+                <form onSubmit={handleContactSubmit}>
                   <div className="form-group">
                     <label>YOUR NAME</label>
                     <input
@@ -1271,10 +1279,20 @@ export default function App() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>PROJECT TYPE</label>
+                    <label>PHONE NUMBER</label>
+                    <input
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>CONSULTATION TYPE</label>
                     <input
                       type="text"
-                      placeholder="e.g., Smart Contract, dApp, DeFi Solution"
+                      placeholder="e.g., Internship, Course, Consultation"
                       value={contactForm.projectType}
                       onChange={(e) => setContactForm({ ...contactForm, projectType: e.target.value })}
                       required

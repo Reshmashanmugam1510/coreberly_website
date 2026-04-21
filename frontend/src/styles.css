@@ -1923,7 +1923,7 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
   overflow-y: auto;
   animation: fadeIn 0.3s ease-out;
 }
@@ -1933,8 +1933,8 @@ section {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   width: 100%;
-  max-width: 1200px;
-  max-height: calc(100vh - 4rem);
+  max-width: 1120px;
+  max-height: calc(100svh - 2rem);
   overflow-y: auto;
   position: relative;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
@@ -1968,17 +1968,17 @@ section {
 .contact-modal-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  padding: 3.5rem;
+  gap: 2rem;
+  padding: 2.1rem 2rem 1.8rem;
 }
 
 .contact-form-section h2,
 .contact-info-section h2 {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.2rem;
 }
 
 .contact-form-section,
@@ -1987,7 +1987,7 @@ section {
 }
 
 .form-group {
-  margin-bottom: 1.6rem;
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
 }
@@ -1998,7 +1998,7 @@ section {
   letter-spacing: 1px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.45rem;
 }
 
 .form-group input,
@@ -2006,7 +2006,7 @@ section {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.86rem 0.95rem;
   color: #fff;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.95rem;
@@ -2029,7 +2029,7 @@ section {
 }
 
 .form-group textarea {
-  min-height: 140px;
+  min-height: 116px;
   resize: vertical;
 }
 
@@ -2037,14 +2037,14 @@ section {
   background: var(--brand-lt);
   color: #fff;
   border: none;
-  padding: 1rem 2rem;
+  padding: 0.9rem 1.6rem;
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   width: 100%;
   transition: all 0.2s;
-  margin-top: 0.8rem;
+  margin-top: 0.55rem;
 }
 
 .form-submit:hover {
@@ -2184,17 +2184,17 @@ section {
 @media (max-width: 900px) {
   .contact-modal-overlay {
     align-items: flex-start;
-    padding-top: 1rem;
+    padding: 0.75rem;
   }
 
   .contact-modal {
-    max-height: calc(100svh - 2rem);
+    max-height: calc(100svh - 1.5rem);
   }
 
   .contact-modal-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 4rem 2rem 2rem;
+    gap: 1.4rem;
+    padding: 3.25rem 1.4rem 1.4rem;
   }
 
   .contact-modal {
@@ -2219,8 +2219,8 @@ section {
   }
 
   .contact-modal-content {
-    padding: 3.5rem 1rem 1.25rem;
-    gap: 1.5rem;
+    padding: 3rem 1rem 1rem;
+    gap: 1.1rem;
   }
 
   .contact-form-section h2,
@@ -2238,7 +2238,7 @@ section {
 
   .contact-item {
     gap: 0.8rem;
-    padding: 1rem;
+    padding: 0.85rem;
   }
 
   .social-links {
@@ -2282,15 +2282,15 @@ section {
   }
 
   .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
   }
 
   .form-group textarea {
-    min-height: 110px;
+    min-height: 96px;
   }
 
   .form-submit {
-    padding: 0.9rem 1.2rem;
+    padding: 0.84rem 1.1rem;
   }
 }
 
