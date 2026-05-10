@@ -853,6 +853,14 @@ section {
   padding-top: 0;
 }
 
+.team-photo.team-photo--founder {
+  background-color: #ffffff;
+}
+
+.team-photo.team-photo--cofounder {
+  background-color: #f4f4f6;
+}
+
 .team-card:hover .team-photo img {
   transform: scale(1.05);
 }

@@ -944,7 +944,9 @@ export default function App() {
               <div className="flip-card-inner">
                 {/* Front side */}
                 <div className="flip-card-front">
-                  <div className={`team-photo ${i < 2 ? "team-photo--top-focus" : ""}`}>
+                  <div
+                    className={`team-photo ${i < 2 ? "team-photo--top-focus" : ""} ${i === 0 ? "team-photo--founder" : i === 1 ? "team-photo--cofounder" : ""}`}
+                  >
                     {m.photo ? (
                       <img src={m.photo} alt={m.name} />
                     ) : (
