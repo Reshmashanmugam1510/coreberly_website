@@ -361,6 +361,7 @@ export default function App() {
     message: ""
   });
   const [flippedCards, setFlippedCards] = useState({});
+  const flipTimeoutsRef = useRef({});
   const [activeReview, setActiveReview] = useState(0);
   const [reviewTouchStartX, setReviewTouchStartX] = useState(null);
   const [newReview, setNewReview] = useState({ quote: "", name: "", role: "", rating: "5" });
@@ -368,11 +369,39 @@ export default function App() {
   const [editedReview, setEditedReview] = useState({ quote: "", name: "", role: "", rating: "5" });
 
   const toggleFlip = (index) => {
-    setFlippedCards((prev) => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+    setFlippedCards((prev) => {
+      const isFlipped = !!prev[index];
+      if (isFlipped) {
+        // If already flipped, close and clear any pending timeout
+        if (flipTimeoutsRef.current[index]) {
+          clearTimeout(flipTimeoutsRef.current[index]);
+          delete flipTimeoutsRef.current[index];
+        }
+        return { ...prev, [index]: false };
+      }
+
+      // If opening, clear existing timeout just in case then set a 2.5s auto-close
+      if (flipTimeoutsRef.current[index]) {
+        clearTimeout(flipTimeoutsRef.current[index]);
+        delete flipTimeoutsRef.current[index];
+      }
+      const id = setTimeout(() => {
+        setFlippedCards((p) => ({ ...p, [index]: false }));
+        delete flipTimeoutsRef.current[index];
+      }, 2500);
+      flipTimeoutsRef.current[index] = id;
+
+      return { ...prev, [index]: true };
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      // cleanup any pending timeouts on unmount
+      Object.values(flipTimeoutsRef.current).forEach((t) => clearTimeout(t));
+      flipTimeoutsRef.current = {};
+    };
+  }, []);
 
   const hero = useMemo(() => data.hero || defaultData.hero, [data.hero]);
   const contact = useMemo(() => data.contact || defaultData.contact, [data.contact]);
