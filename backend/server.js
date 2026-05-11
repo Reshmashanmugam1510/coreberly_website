@@ -18,7 +18,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "https://coreberly-website.vercel.app"
+  "https://coreberly-website.vercel.app",
+  "https://coreberly.in",       // ✅ ADD
+  "https://www.coreberly.in"    // ✅ ADD
 ];
 
 const extraCorsOrigins = String(process.env.CORS_ORIGIN || "")
