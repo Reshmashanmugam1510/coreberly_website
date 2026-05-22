@@ -24,6 +24,8 @@ const DEFAULT_LEGAL_CONTENT = {
     "By using this website, you agree to use it responsibly and not misuse any content, forms, or service information. All materials are provided for general informational purposes. Project timelines, deliverables, and estimates are confirmed separately through direct communication with our team."
 };
 
+const COREBERLY_LINKEDIN_URL = "https://www.linkedin.com/in/coreberly-charann?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app";
+
 const defaultData = {
   team: [],
   partners: [],
@@ -43,7 +45,7 @@ const defaultData = {
     tname: "",
     trole: ""
   },
-  contact: { email: "", linkedin: "#", instagram: "#", twitter: "#" }
+  contact: { email: "", linkedin: COREBERLY_LINKEDIN_URL, instagram: "#", twitter: "#" }
 };
 
 const galleryIcons = ["🧑‍💻", "🎨", "🚀", "💡", "🤝", "📸"];
@@ -1231,13 +1233,13 @@ export default function App() {
                 </a>
               </li>
               <li>
-                <a href={contact.linkedin !== "#" ? contact.linkedin : "#"} target="_blank" rel="noreferrer">
+                <a href={contact.linkedin || COREBERLY_LINKEDIN_URL} target="_blank" rel="noreferrer">
                   LinkedIn
                 </a>
               </li>
               <li>
-                <a href={contact.twitter !== "#" ? contact.twitter : "#"} target="_blank" rel="noreferrer">
-                  Twitter / X
+                <a href={contact.instagram || "https://www.instagram.com/coreberly_official?igsh=YWN4ZGR4NDB4bndi"} target="_blank" rel="noreferrer">
+                  Instagram
                 </a>
               </li>
             </ul>
@@ -1371,7 +1373,7 @@ export default function App() {
                   <h3>Connect With Us</h3>
                   <div className="social-links">
                     <SocialLink href={`mailto:coreberly@gmail.com`} label="Email" type="email" />
-                    <SocialLink href="https://www.instagram.com/coreberly_official?igsh=YWN4ZGR4NDB4bndi" label="LinkedIn" type="linkedin" />
+                    <SocialLink href={contact.linkedin || COREBERLY_LINKEDIN_URL} label="LinkedIn" type="linkedin" />
                     <SocialLink href="https://www.instagram.com/coreberly_official?igsh=YWN4ZGR4NDB4bndi" label="Instagram" type="instagram" />
                   </div>
                 </div>
